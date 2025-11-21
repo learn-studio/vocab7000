@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>7000單字卡 (合併重複單字版)</title>
+    
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+
+    <style>
+        /* --- 基本設定 --- */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+            margin: 0; padding: 0; height: 100vh; overflow: hidden;
+            display: flex; flex-direction: column; align-items: center;
+        }
+
+        /* --- Loading 畫面 --- */
+        #loading-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255,255,255,0.98);
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            z-index: 9999; transition: opacity 0.5s;
+        }
+        .spinner {
+            width: 50px; height: 50px; border: 5px solid #eee; border-top: 5px solid #4CAF50;
+            border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* --- 篩選區塊容器 --- */
+        .filter-container {
+            background: white;
+            width: 100%;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px 0;
+        }
+
+        /* ★ A-Z 篩選列 (可滑動) ★ */
+        .filter-bar {
+            width: 100%;
+            display: flex;
+            justify-content: flex-start; /* 手機靠左 */
+            align-items: center;
+            overflow-x: auto;
+            gap: 8px;
+            padding: 8px 15px;
+            box-sizing: border-box;
+            scrollbar-width: none; 
+            -webkit-overflow-scrolling: touch; 
+        }
+        .filter-bar::-webkit-scrollbar { display: none; }
+
+        @media (min-width: 850px) {
+            .filter-bar { justify-content: center; } /* 電腦版置中 */
+        }
+        
+        /* Level 篩選列 */
+        .level-bar {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 8px;
+            padding: 5px 15px;
+            margin-top: 5px;
+            box-sizing: border-box;
+        }
+
+        .filter-btn {
+            flex: 0 0 auto; 
+            border: 1px solid #eee; background: white; color: #555;
+            width: 36px; height: 36px; border-radius: 50%; cursor: pointer; font-weight: bold;
+            display: flex; align-items: center; justify-content: center; font-size: 14px; 
+            transition: all 0.2s;
+        }
+        .filter-btn.active { background: #4CAF50; color: white; border-color: #4CAF50; transform: scale(1.1); box-shadow: 0 2px 5px rgba(76, 175, 80, 0.3); }
+
+        .level-btn {
+            border: 1px solid #ddd; background: #f9f9f9; color: #666;
+            padding: 4px 12px; border-radius: 15px; cursor: pointer; font-size: 13px; font-weight: bold;
+            transition: all 0.2s;
+        }
+        .level-btn:hover { background: #eee; }
+        .level-btn.active { background: #2196F3; color: white; border-color: #2196F3; }
+
+        /* --- 主內容區 --- */
+        #app { flex: 1; width: 100%; display: flex; justify-content: center; align-items: center; gap: 20px; padding: 0 20px; box-sizing: border-box; }
+
+        /* --- 卡片樣式 --- */
+        .card-container { 
+            height: 55vh; 
+            max-height: 500px; 
+            min-height: 350px; 
+            perspective: 1000px; 
+            cursor: pointer; 
+        }
+        
+        .card { width: 100%; height: 100%; position: relative; transform-style: preserve-3d; transition: transform 0.6s cubic-bezier(0.4, 0.2, 0.2, 1); border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        .card.flipped { transform: rotateY(180deg); }
+        
+        .card-face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: white; box-sizing: border-box; border: 1px solid #f0f0f0; overflow: hidden; }
+        .card-front { z-index: 2; }
+        
+        .level-badge {
+            position: absolute; top: 15px; left: 15px; padding: 4px 10px; border-radius: 12px;
+            color: white; font-size: 0.75em; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.2); z-index: 10;
+        }
+
+        .play-btn { position: absolute; top: 15px; right: 15px; background: rgba(255,255,255,0.9); border: none; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #555; z-index: 10; transition: all 0.2s; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .play-btn:hover { background: #4CAF50; color: white; transform: scale(1.1); }
+        
+        /* 圖片樣式 (手機版 contain) */
+        .card-img { 
+            width: 100%; 
+            height: 45%; 
+            object-fit: cover; 
+            margin-bottom: 0; 
+            border-bottom: 1px solid #f0f0f0; 
+            background-color: #f8f8f8; 
+        }
+        
+        .text-area { padding: 10px; display: flex; flex-direction: column; align-items: center; width: 100%; flex: 1; justify-content: center; }
+        
+        .word-text { font-size: 1.8em; font-weight: 800; color: #2c3e50; margin: 5px 0 0 0; text-align: center; line-height: 1.2;}
+        
+        /* 詞性樣式 */
+        .pos-text { 
+            font-size: 1em; color: #666; font-style: italic; margin: 4px 0 6px 0; font-family: serif; 
+            background: #f0f0f0; padding: 2px 8px; border-radius: 10px; /* 增加小背景讓合併後的詞性更清楚 */
+        }
+        
+        .kk-text { font-size: 1.1em; color: #666; font-family: 'Lucida Sans Unicode', sans-serif; min-height: 24px; }
+
+        .card-back { background: #fff; transform: rotateY(180deg); padding: 20px; text-align: center; border: 3px solid #4CAF50; overflow-y: auto; }
+        
+        /* 翻譯文字：如果合併後文字太長，允許捲動 */
+        .trans-text { font-size: 1.6em; font-weight: bold; color: #4CAF50; line-height: 1.5; max-height: 80%; overflow-y: auto; }
+        .hint-text { font-size: 0.9em; color: #aaa; margin-top: 20px; }
+
+        /* --- 底部控制 --- */
+        .pagination { height: 70px; display: flex; align-items: center; justify-content: center; gap: 30px; width: 100%; background: white; box-shadow: 0 -4px 20px rgba(0,0,0,0.05); z-index: 90;}
+        .page-btn { background: none; border: none; cursor: pointer; color: #555; padding: 8px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: background 0.2s; }
+        .page-btn:disabled { opacity: 0.2; cursor: not-allowed; }
+        .page-info { font-weight: bold; color: #333; font-size: 1.2em; min-width: 100px; text-align: center; font-family: monospace; }
+        .error-msg { color: red; font-size: 0.9em; margin-top: 10px; text-align: center; padding: 0 20px; }
+
+        /* ★ 手機版優化 (關鍵) ★ */
+        @media (max-width: 600px) {
+            .card-container {
+                flex: 0 0 auto !important; 
+                width: 320px !important; 
+                max-width: 90vw; 
+                height: 60vh; 
+                max-height: 550px;
+            }
+            .card-img { object-fit: contain; height: 45%; }
+            .text-area { justify-content: flex-start; padding-top: 20px; }
+            .filter-bar { padding-left: 10px; padding-right: 10px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="loading-overlay">
+        <div class="spinner"></div>
+        <p id="loading-text" style="color: #555; font-weight: bold;">正在讀取 Google Sheet...</p>
+        <p id="error-log" class="error-msg"></p>
+    </div>
+
+    <!-- 篩選區塊 -->
+    <div class="filter-container">
+        <div class="filter-bar" id="azFilterBar"></div>
+        <div class="level-bar" id="levelFilterBar">
+            <button class="level-btn active" onclick="filterByLevel('All')">全部</button>
+            <button class="level-btn" onclick="filterByLevel('Level 1')">L1</button>
+            <button class="level-btn" onclick="filterByLevel('Level 2')">L2</button>
+            <button class="level-btn" onclick="filterByLevel('Level 3')">L3</button>
+            <button class="level-btn" onclick="filterByLevel('Level 4')">L4</button>
+            <button class="level-btn" onclick="filterByLevel('Level 5')">L5</button>
+            <button class="level-btn" onclick="filterByLevel('Level 6')">L6</button>
+        </div>
+    </div>
+
+    <div id="app"></div>
+    
+    <div class="pagination" id="paginationControl">
+        <button class="page-btn" onclick="changePage(-1)"><span class="material-icons" style="font-size: 40px;">navigate_before</span></button>
+        <span class="page-info" id="pageInfo">- / -</span>
+        <button class="page-btn" onclick="changePage(1)"><span class="material-icons" style="font-size: 40px;">navigate_next</span></button>
+    </div>
+
+    <script>
+        const SHEET_ID = '1Piz5rwAWy9f0B0WFjz6WlBTfkp89r_7q4mo41teEkoE';
+        const STORAGE_KEY = 'vocab_card_merged_v2'; 
+
+        const LEVEL_CONFIG = [
+            { level: 'Level 1', gid: '1467595538' },
+            { level: 'Level 2', gid: '2047989815' }, 
+            { level: 'Level 3', gid: '1028425424' }, 
+            { level: 'Level 4', gid: '308416138' }, 
+            { level: 'Level 5', gid: '1934380865' }, 
+            { level: 'Level 6', gid: '843087703' }
+        ];
+
+        const generateImgUrl = (word) => {
+            return `https://tse2.mm.bing.net/th?q=${encodeURIComponent(word)}&w=400&h=300&c=7&rs=1&p=0`;
+        };
+
+        const getLevelColor = (levelStr) => {
+            const num = levelStr.replace(/\D/g, ''); 
+            if (num == 1) return '#4CAF50'; 
+            if (num == 2) return '#2196F3'; 
+            if (num == 3) return '#FF9800'; 
+            if (num == 4) return '#9C27B0'; 
+            if (num == 5) return '#F44336'; 
+            if (num == 6) return '#795548'; 
+            return '#607D8B';
+        };
+
+        let fullVocabData = [];
+        let displayData = []; 
+        
+        let currentLetter = 'A';
+        let currentLevel = 'All';
+        let currentPage = 1;
+        
+        let itemsPerPage = 4;
+        const phoneticCache = {}; 
+
+        const app = document.getElementById('app');
+        const loadingText = document.getElementById('loading-text');
+        const errorLog = document.getElementById('error-log');
+        const loadingOverlay = document.getElementById('loading-overlay');
+
+        // 初始化
+        fetchAllLevels();
+
+        window.addEventListener('resize', () => {
+            updateItemsPerPage();
+            renderPage();
+        });
+
+        // --- 進度記憶 ---
+        function saveProgress() {
+            const state = {
+                letter: currentLetter,
+                level: currentLevel,
+                page: currentPage
+            };
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        }
+
+        function loadProgress() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) {
+                try {
+                    const state = JSON.parse(saved);
+                    if (state.letter) currentLetter = state.letter;
+                    if (state.level) currentLevel = state.level;
+                    if (state.page) currentPage = state.page;
+                    console.log("已恢復進度:", state);
+                } catch (e) {
+                    console.error("讀取進度失敗", e);
+                }
+            }
+        }
+
+        // --- 核心下載邏輯 ---
+        async function fetchAllLevels() {
+            const promises = LEVEL_CONFIG.map(config => {
+                const googleUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${config.gid}`;
+                // 使用更穩定的 Proxy
+                const proxyUrl = `https://corsproxy.io/?` + encodeURIComponent(googleUrl);
+
+                return fetch(proxyUrl)
+                    .then(res => {
+                        if (!res.ok) throw new Error(`無法讀取 ${config.level} (HTTP ${res.status})`);
+                        return res.text();
+                    })
+                    .then(csvText => {
+                        if (csvText.trim().startsWith("<!DOCTYPE html>")) {
+                            throw new Error("權限錯誤或 Google 暫時阻擋");
+                        }
+                        return new Promise((resolve) => {
+                            Papa.parse(csvText, {
+                                header: false, 
+                                skipEmptyLines: true,
+                                complete: (results) => {
+                                    const parsed = processData(results.data, config.level);
+                                    resolve(parsed);
+                                },
+                                error: (err) => { throw new Error("CSV 解析失敗"); }
+                            });
+                        });
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        errorLog.innerText += `[${config.level} 失敗]: ${err.message}\n`;
+                        return [];
+                    });
+            });
+
+            loadingText.innerText = "資料下載與合併中...";
+            
+            try {
+                const allData = await Promise.all(promises);
+                const flatData = allData.flat();
+
+                if (flatData.length === 0) {
+                    loadingText.innerText = "讀取失敗，請檢查網路或稍後再試";
+                    return;
+                }
+
+                // ★★★ 在這裡執行合併邏輯 ★★★
+                fullVocabData = mergeAndDeduplicate(flatData);
+
+                console.log(`處理完成：原始 ${flatData.length} -> 合併後 ${fullVocabData.length}`);
+                loadingText.innerText = "準備完成";
+
+                loadProgress();
+                initAZFilters();
+                updateItemsPerPage();
+                applyFilters(true);
+                updateLevelBtnUI();
+
+                loadingOverlay.style.opacity = '0';
+                setTimeout(() => loadingOverlay.style.display = 'none', 500);
+                
+            } catch (criticalError) {
+                loadingText.innerText = "發生嚴重錯誤";
+                errorLog.innerText += "系統錯誤: " + criticalError.message;
+            }
+        }
+
+        function processData(rawData, levelName) {
+            const parsedList = [];
+            rawData.forEach(row => {
+                let rawStr = row[0];
+                if (!rawStr || typeof rawStr !== 'string') return;
+                rawStr = rawStr.trim();
+                if (!rawStr.includes('@')) return;
+
+                try {
+                    const parts = rawStr.split('@');
+                    const word = parts[0].trim();
+                    const rest = parts[1]; 
+
+                    const openParen = rest.indexOf('(');
+                    const closeParen = rest.indexOf(')');
+                    
+                    let pos = ""; 
+                    let trans = ""; 
+
+                    if (openParen !== -1 && closeParen !== -1) {
+                        let rawPos = rest.substring(openParen + 1, closeParen); 
+                        pos = rawPos.replace(/\d+/g, ''); // 去除數字
+                        trans = rest.substring(closeParen + 1).trim();   
+                    } else {
+                        trans = rest;
+                    }
+
+                    parsedList.push({
+                        word: word,
+                        pos: pos,    
+                        trans: trans,
+                        level: levelName,
+                        // 用來支援一個單字屬於多個級數
+                        levels: [levelName], 
+                        img: generateImgUrl(word)
+                    });
+
+                } catch (e) {
+                    console.warn("解析錯誤:", rawStr);
+                }
+            });
+            return parsedList;
+        }
+
+        // ★★★ 合併重複單字的核心函式 ★★★
+        function mergeAndDeduplicate(list) {
+            const map = new Map();
+
+            list.forEach(item => {
+                const key = item.word.toLowerCase(); // 忽略大小寫
+                
+                if (map.has(key)) {
+                    const existing = map.get(key);
+                    
+                    // 1. 合併詞性 (避免重複)
+                    // 假設 existing.pos = "adj.", item.pos = "v." -> "adj. / v."
+                    if (item.pos) {
+                        const currentPosList = existing.pos.split('/').map(s => s.trim());
+                        if (!currentPosList.includes(item.pos)) {
+                            existing.pos = existing.pos ? `${existing.pos} / ${item.pos}` : item.pos;
+                        }
+                    }
+
+                    // 2. 合併翻譯 (避免完全重複)
+                    // 使用全形分號區隔
+                    if (item.trans && !existing.trans.includes(item.trans)) {
+                        existing.trans += `；${item.trans}`;
+                    }
+
+                    // 3. 記錄多個級數
+                    if (!existing.levels.includes(item.level)) {
+                        existing.levels.push(item.level);
+                    }
+
+                    // 注意：我們保留最先發現的 item.img 和主要 item.level (作為顯示顏色)
+                    // 通常較低級數會先被讀取，所以顏色會是較低級數的顏色 (符合直覺)
+                    
+                } else {
+                    map.set(key, item);
+                }
+            });
+
+            return Array.from(map.values());
+        }
+
+        function updateItemsPerPage() {
+            const w = window.innerWidth;
+            if (w < 600) itemsPerPage = 1;
+            else if (w < 1024) itemsPerPage = 3;
+            else itemsPerPage = 4;
+        }
+
+        function initAZFilters() {
+            const bar = document.getElementById('azFilterBar');
+            bar.innerHTML = ''; 
+            'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').forEach(letter => {
+                const btn = document.createElement('button');
+                btn.className = 'filter-btn';
+                btn.innerText = letter;
+                
+                if(letter === currentLetter) {
+                    btn.classList.add('active');
+                    setTimeout(() => {
+                        btn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+                    }, 100);
+                }
+
+                btn.onclick = () => {
+                    document.querySelectorAll('#azFilterBar .filter-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    btn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+                    currentLetter = letter;
+                    applyFilters(false); 
+                };
+                bar.appendChild(btn);
+            });
+        }
+
+        function filterByLevel(level) {
+            currentLevel = level;
+            updateLevelBtnUI();
+            applyFilters(false); 
+        }
+
+        function updateLevelBtnUI() {
+            document.querySelectorAll('#levelFilterBar .level-btn').forEach(btn => {
+                if (btn.innerText === (currentLevel === 'All' ? '全部' : currentLevel.replace('Level ', 'L'))) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+        }
+
+        function applyFilters(preservePage = false) {
+            // 1. 篩選首字母
+            let filtered = fullVocabData.filter(item => item.word.toUpperCase().startsWith(currentLetter));
+            
+            // 2. 篩選 Level (支援合併後的 levels 陣列)
+            if (currentLevel !== 'All') {
+                // 只要該單字的 levels 陣列包含目前選的 Level，就算符合
+                filtered = filtered.filter(item => item.levels.includes(currentLevel));
+            }
+
+            filtered.sort((a, b) => a.word.localeCompare(b.word));
+            displayData = filtered;
+            
+            if (!preservePage) {
+                currentPage = 1;
+            }
+            
+            saveProgress();
+            renderPage();
+        }
+
+        function changePage(dir) {
+            const total = Math.ceil(displayData.length / itemsPerPage);
+            const next = currentPage + dir;
+            if (next >= 1 && next <= total) {
+                currentPage = next;
+                saveProgress();
+                renderPage();
+            }
+        }
+
+        function renderPage() {
+            app.innerHTML = '';
+            const total = Math.ceil(displayData.length / itemsPerPage);
+            
+            if (currentPage > total && total > 0) {
+                currentPage = 1;
+                saveProgress();
+            }
+
+            if (displayData.length === 0) {
+                app.innerHTML = '<div style="color:#888; font-size: 1.2em;">此分類無資料</div>';
+                document.getElementById('paginationControl').style.visibility = 'hidden';
+                return;
+            }
+            document.getElementById('paginationControl').style.visibility = 'visible';
+
+            const start = (currentPage - 1) * itemsPerPage;
+            const pageData = displayData.slice(start, start + itemsPerPage);
+            
+            document.getElementById('pageInfo').innerText = `${currentPage} / ${total}`;
+            document.querySelectorAll('.page-btn')[0].disabled = (currentPage === 1);
+            document.querySelectorAll('.page-btn')[1].disabled = (currentPage === total);
+
+            pageData.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'card-container';
+                
+                if (itemsPerPage === 1) div.style.flex = "0 0 100%";
+                else if (itemsPerPage === 3) div.style.flex = "0 0 30%";
+                else div.style.flex = "0 0 22%";
+
+                const kkId = `kk-${item.word}-${Math.random().toString(36).substr(2, 5)}`;
+
+                div.innerHTML = `
+                    <div class="card">
+                        <div class="card-face card-front">
+                            <div class="level-badge" style="background:${getLevelColor(item.level)}">${item.level}</div>
+
+                            <button class="play-btn" onclick="playAudio(event, '${item.word}')">
+                                <span class="material-icons">volume_up</span>
+                            </button>
+                            
+                            <img src="${item.img}" alt="${item.word}" class="card-img" loading="lazy" onerror="this.src='https://dummyimage.com/400x300/eee/aaa&text=${item.word}'">
+                            
+                            <div class="text-area">
+                                <div class="word-text">${item.word}</div>
+                                <!-- 這裡顯示合併後的 pos -->
+                                ${item.pos ? `<div class="pos-text">${item.pos}</div>` : ''}
+                                <div class="kk-text" id="${kkId}">
+                                    ${phoneticCache[item.word] ? phoneticCache[item.word] : '<span style="font-size:0.8em; opacity:0.5;">讀取音標...</span>'}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-face card-back">
+                            <!-- 這裡顯示合併後的翻譯 -->
+                            <div class="trans-text">${item.trans}</div>
+                            <div class="hint-text">(點擊翻回正面)</div>
+                        </div>
+                    </div>
+                `;
+                const card = div.querySelector('.card');
+                div.addEventListener('click', () => card.classList.toggle('flipped'));
+                app.appendChild(div);
+
+                if (!phoneticCache[item.word]) {
+                    fetchPhonetic(item.word, kkId);
+                }
+            });
+        }
+
+        async function fetchPhonetic(word, elementId) {
+            try {
+                const res = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`);
+                const data = await res.json();
+                
+                let phonetic = "";
+                if (Array.isArray(data) && data.length > 0) {
+                    if (data[0].phonetic) {
+                        phonetic = data[0].phonetic;
+                    } else if (data[0].phonetics && data[0].phonetics.length > 0) {
+                        const p = data[0].phonetics.find(obj => obj.text);
+                        if (p) phonetic = p.text;
+                    }
+                }
+
+                const el = document.getElementById(elementId);
+                if (el) {
+                    if (phonetic) {
+                        const finalKK = `[${phonetic.replace(/\//g, '')}]`;
+                        el.innerText = finalKK;
+                        phoneticCache[word] = finalKK; 
+                    } else {
+                        el.innerHTML = '<span style="font-size:0.8em; opacity:0.3;">(無音標)</span>';
+                        phoneticCache[word] = ' '; 
+                    }
+                }
+
+            } catch (err) {
+                const el = document.getElementById(elementId);
+                if(el) el.innerHTML = '';
+            }
+        }
+
+        function playAudio(e, text) {
+            e.stopPropagation();
+            if ('speechSynthesis' in window) {
+                const u = new SpeechSynthesisUtterance(text);
+                u.lang = 'en-US';
+                window.speechSynthesis.speak(u);
+            }
+        }
+    </script>
+</body>
+</html>
