@@ -2,8 +2,8 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>7000單字卡 (合併重複單字版)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>7000單字卡 (底部固定版)</title>
     
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
@@ -40,13 +40,14 @@
             flex-direction: column;
             align-items: center;
             padding: 10px 0;
+            flex-shrink: 0; /* 防止被壓縮 */
         }
 
-        /* ★ A-Z 篩選列 (可滑動) ★ */
+        /* A-Z 篩選列 */
         .filter-bar {
             width: 100%;
             display: flex;
-            justify-content: flex-start; /* 手機靠左 */
+            justify-content: flex-start; 
             align-items: center;
             overflow-x: auto;
             gap: 8px;
@@ -58,7 +59,7 @@
         .filter-bar::-webkit-scrollbar { display: none; }
 
         @media (min-width: 850px) {
-            .filter-bar { justify-content: center; } /* 電腦版置中 */
+            .filter-bar { justify-content: center; }
         }
         
         /* Level 篩選列 */
@@ -91,7 +92,18 @@
         .level-btn.active { background: #2196F3; color: white; border-color: #2196F3; }
 
         /* --- 主內容區 --- */
-        #app { flex: 1; width: 100%; display: flex; justify-content: center; align-items: center; gap: 20px; padding: 0 20px; box-sizing: border-box; }
+        #app { 
+            flex: 1; 
+            width: 100%; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            gap: 20px; 
+            padding: 0 20px; 
+            box-sizing: border-box; 
+            /* ★重要：下方留白給固定按鈕，避免卡片被遮住 */
+            padding-bottom: 90px; 
+        }
 
         /* --- 卡片樣式 --- */
         .card-container { 
@@ -116,7 +128,6 @@
         .play-btn { position: absolute; top: 15px; right: 15px; background: rgba(255,255,255,0.9); border: none; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #555; z-index: 10; transition: all 0.2s; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
         .play-btn:hover { background: #4CAF50; color: white; transform: scale(1.1); }
         
-        /* 圖片樣式 (手機版 contain) */
         .card-img { 
             width: 100%; 
             height: 45%; 
@@ -130,34 +141,49 @@
         
         .word-text { font-size: 1.8em; font-weight: 800; color: #2c3e50; margin: 5px 0 0 0; text-align: center; line-height: 1.2;}
         
-        /* 詞性樣式 */
         .pos-text { 
             font-size: 1em; color: #666; font-style: italic; margin: 4px 0 6px 0; font-family: serif; 
-            background: #f0f0f0; padding: 2px 8px; border-radius: 10px; /* 增加小背景讓合併後的詞性更清楚 */
+            background: #f0f0f0; padding: 2px 8px; border-radius: 10px; 
         }
         
         .kk-text { font-size: 1.1em; color: #666; font-family: 'Lucida Sans Unicode', sans-serif; min-height: 24px; }
 
         .card-back { background: #fff; transform: rotateY(180deg); padding: 20px; text-align: center; border: 3px solid #4CAF50; overflow-y: auto; }
-        
-        /* 翻譯文字：如果合併後文字太長，允許捲動 */
         .trans-text { font-size: 1.6em; font-weight: bold; color: #4CAF50; line-height: 1.5; max-height: 80%; overflow-y: auto; }
         .hint-text { font-size: 0.9em; color: #aaa; margin-top: 20px; }
 
-        /* --- 底部控制 --- */
-        .pagination { height: 70px; display: flex; align-items: center; justify-content: center; gap: 30px; width: 100%; background: white; box-shadow: 0 -4px 20px rgba(0,0,0,0.05); z-index: 90;}
+        /* --- 底部控制 (★修改處：改為固定定位) --- */
+        .pagination { 
+            position: fixed; /* 固定在視窗 */
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 70px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            gap: 30px; 
+            background: white; 
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.1); 
+            z-index: 999;
+            /* 為了 iPhone X 以上瀏海機保留底部空間 */
+            padding-bottom: env(safe-area-inset-bottom); 
+            box-sizing: content-box;
+        }
+
         .page-btn { background: none; border: none; cursor: pointer; color: #555; padding: 8px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: background 0.2s; }
         .page-btn:disabled { opacity: 0.2; cursor: not-allowed; }
         .page-info { font-weight: bold; color: #333; font-size: 1.2em; min-width: 100px; text-align: center; font-family: monospace; }
         .error-msg { color: red; font-size: 0.9em; margin-top: 10px; text-align: center; padding: 0 20px; }
 
-        /* ★ 手機版優化 (關鍵) ★ */
+        /* 手機版優化 */
         @media (max-width: 600px) {
             .card-container {
                 flex: 0 0 auto !important; 
                 width: 320px !important; 
                 max-width: 90vw; 
-                height: 60vh; 
+                /* 卡片高度稍微調整，確保不會太長被底部按鈕擋住 */
+                height: 58vh; 
                 max-height: 550px;
             }
             .card-img { object-fit: contain; height: 45%; }
@@ -247,7 +273,6 @@
             renderPage();
         });
 
-        // --- 進度記憶 ---
         function saveProgress() {
             const state = {
                 letter: currentLetter,
@@ -272,11 +297,9 @@
             }
         }
 
-        // --- 核心下載邏輯 ---
         async function fetchAllLevels() {
             const promises = LEVEL_CONFIG.map(config => {
                 const googleUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${config.gid}`;
-                // 使用更穩定的 Proxy
                 const proxyUrl = `https://corsproxy.io/?` + encodeURIComponent(googleUrl);
 
                 return fetch(proxyUrl)
@@ -318,7 +341,6 @@
                     return;
                 }
 
-                // ★★★ 在這裡執行合併邏輯 ★★★
                 fullVocabData = mergeAndDeduplicate(flatData);
 
                 console.log(`處理完成：原始 ${flatData.length} -> 合併後 ${fullVocabData.length}`);
@@ -360,7 +382,7 @@
 
                     if (openParen !== -1 && closeParen !== -1) {
                         let rawPos = rest.substring(openParen + 1, closeParen); 
-                        pos = rawPos.replace(/\d+/g, ''); // 去除數字
+                        pos = rawPos.replace(/\d+/g, ''); 
                         trans = rest.substring(closeParen + 1).trim();   
                     } else {
                         trans = rest;
@@ -371,7 +393,6 @@
                         pos: pos,    
                         trans: trans,
                         level: levelName,
-                        // 用來支援一個單字屬於多個級數
                         levels: [levelName], 
                         img: generateImgUrl(word)
                     });
@@ -383,18 +404,15 @@
             return parsedList;
         }
 
-        // ★★★ 合併重複單字的核心函式 ★★★
         function mergeAndDeduplicate(list) {
             const map = new Map();
 
             list.forEach(item => {
-                const key = item.word.toLowerCase(); // 忽略大小寫
+                const key = item.word.toLowerCase(); 
                 
                 if (map.has(key)) {
                     const existing = map.get(key);
                     
-                    // 1. 合併詞性 (避免重複)
-                    // 假設 existing.pos = "adj.", item.pos = "v." -> "adj. / v."
                     if (item.pos) {
                         const currentPosList = existing.pos.split('/').map(s => s.trim());
                         if (!currentPosList.includes(item.pos)) {
@@ -402,20 +420,13 @@
                         }
                     }
 
-                    // 2. 合併翻譯 (避免完全重複)
-                    // 使用全形分號區隔
                     if (item.trans && !existing.trans.includes(item.trans)) {
                         existing.trans += `；${item.trans}`;
                     }
 
-                    // 3. 記錄多個級數
                     if (!existing.levels.includes(item.level)) {
                         existing.levels.push(item.level);
                     }
-
-                    // 注意：我們保留最先發現的 item.img 和主要 item.level (作為顯示顏色)
-                    // 通常較低級數會先被讀取，所以顏色會是較低級數的顏色 (符合直覺)
-                    
                 } else {
                     map.set(key, item);
                 }
@@ -474,12 +485,9 @@
         }
 
         function applyFilters(preservePage = false) {
-            // 1. 篩選首字母
             let filtered = fullVocabData.filter(item => item.word.toUpperCase().startsWith(currentLetter));
             
-            // 2. 篩選 Level (支援合併後的 levels 陣列)
             if (currentLevel !== 'All') {
-                // 只要該單字的 levels 陣列包含目前選的 Level，就算符合
                 filtered = filtered.filter(item => item.levels.includes(currentLevel));
             }
 
@@ -550,7 +558,6 @@
                             
                             <div class="text-area">
                                 <div class="word-text">${item.word}</div>
-                                <!-- 這裡顯示合併後的 pos -->
                                 ${item.pos ? `<div class="pos-text">${item.pos}</div>` : ''}
                                 <div class="kk-text" id="${kkId}">
                                     ${phoneticCache[item.word] ? phoneticCache[item.word] : '<span style="font-size:0.8em; opacity:0.5;">讀取音標...</span>'}
@@ -558,7 +565,6 @@
                             </div>
                         </div>
                         <div class="card-face card-back">
-                            <!-- 這裡顯示合併後的翻譯 -->
                             <div class="trans-text">${item.trans}</div>
                             <div class="hint-text">(點擊翻回正面)</div>
                         </div>
