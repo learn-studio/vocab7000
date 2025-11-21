@@ -8,7 +8,7 @@
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     
     <style>
-        /* --- 重置基礎樣式，避免被外部影響 --- */
+        /* --- 基礎設定 --- */
         body {
             margin: 0;
             padding: 0;
@@ -17,46 +17,55 @@
 
         /* --- Header CSS --- */
         .site-header {
-            width: 100%; /* 強制寬度 100% */
+            width: 100%;
             height: 60px;
             background-color: #ffffff;
             box-shadow: 0 2px 4px rgba(0,0,0,0.08);
             display: flex;
             align-items: center;
-            justify-content: space-between; /* 關鍵：讓內容往左右兩邊推開 */
-            padding: 0 20px; /* 左右保留一點邊距，避免貼死螢幕邊緣 */
-            box-sizing: border-box; /* 確保 padding 不會撐大寬度 */
+            justify-content: space-between;
+            padding: 0 20px;
+            box-sizing: border-box;
             position: relative;
             z-index: 1000;
             flex-shrink: 0;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
-        /* Logo 區域 - 靠左 */
+        /* 
+           ★ 強制重置 header 內所有連結的樣式 
+           這段是為了對抗外部 CSS (如 bootstrap) 的干擾
+        */
+        .site-header a {
+            text-decoration: none !important; /* 移除底線 */
+            border: none !important;
+        }
+
+        /* Logo 區域 */
         .header-logo {
             font-size: 1.4em;
             font-weight: bold;
-            color: #333;
-            text-decoration: none;
+            color: #333 !important; /* 強制黑色 */
             display: flex;
             align-items: center;
             gap: 8px;
-            /* 防止被壓縮 */
             flex-shrink: 0; 
         }
-        .header-logo span { color: #4CAF50; }
+        .header-logo span { color: #4CAF50 !important; }
 
-        /* 電腦版導航選單 - 靠右 */
+        /* 電腦版導航選單 */
         .desktop-nav {
             display: flex;
             align-items: center;
-            gap: 30px; /* 選單項目之間的間距 */
+            gap: 30px;
         }
 
-        /* 通用導航連結樣式 (包含關於作者) */
+        /* 
+           ★ 導航連結樣式 (包含關於作者) 
+           使用 !important 確保顏色正確
+        */
         .nav-item {
-            text-decoration: none;
-            color: #333; /* 一般黑色字 */
+            color: #333 !important; /* 預設顏色：黑色 */
             font-weight: 500;
             font-size: 16px;
             cursor: pointer;
@@ -65,9 +74,12 @@
             display: flex;
             align-items: center;
         }
-        /* Hover 變色 */
+
+        /* 
+           ★ Hover 變色效果 
+        */
         .nav-item:hover { 
-            color: #4CAF50; 
+            color: #4CAF50 !important; /* 滑鼠移過：綠色 */
         }
 
         /* 下拉選單容器 */
@@ -83,9 +95,9 @@
             display: none;
             position: absolute;
             top: 60px;
-            right: -10px; /* 稍微調整對齊 */
+            right: -10px;
             background-color: #fff;
-            min-width: 180px; /* 稍微加寬 */
+            min-width: 180px;
             box-shadow: 0 8px 16px rgba(0,0,0,0.15);
             border-radius: 0 0 8px 8px;
             overflow: hidden;
@@ -98,9 +110,8 @@
         }
 
         .dropdown-content a {
-            color: #333;
+            color: #333 !important;
             padding: 12px 20px;
-            text-decoration: none;
             display: block;
             font-size: 15px;
             transition: background 0.1s, color 0.1s;
@@ -108,7 +119,7 @@
         }
         .dropdown-content a:hover { 
             background-color: #f5f5f5; 
-            color: #4CAF50; 
+            color: #4CAF50 !important; 
         }
 
         /* 手機版 Menu 按鈕 */
@@ -138,8 +149,8 @@
         .mobile-nav-overlay a, .mobile-nav-overlay div {
             padding: 15px 20px;
             border-bottom: 1px solid #f0f0f0;
-            text-decoration: none;
-            color: #333;
+            text-decoration: none !important;
+            color: #333 !important;
             font-size: 16px;
             display: block;
         }
@@ -184,7 +195,7 @@
             </div>
 
             <!-- 關於作者 (獨立連結) -->
-            <!-- 注意：這裡加上了 class="nav-item" 讓它套用黑色字體與綠色 hover 效果 -->
+            <!-- 這裡使用了 class="nav-item" 並且配合 CSS 的 !important 強制樣式 -->
             <a href="https://learn-studio.github.io/about/" class="nav-item">關於作者</a>
         </nav>
 
