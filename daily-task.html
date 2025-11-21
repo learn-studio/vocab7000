@@ -3,321 +3,282 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Career RPG: 每日副本</title>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;500;700&family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+    <title>Mandala Lite v4</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;500;700&family=Roboto+Mono:wght@500&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
         :root {
-            --bg-color: #0f0f13;
-            --card-bg: #1a1a20;
-            --text-main: #e0e0e0;
-            --accent: #00E676; 
-            --accent-glow: rgba(0, 230, 118, 0.4);
-            --ui-border: #333;
-            --quest-bg: #222228;
+            --bg-color: #f0f2f5;
+            --card-bg: #ffffff;
+            --text-main: #333;
+            --text-sub: #666;
+            --accent: #10b981;
+            --edit-color: #3b82f6;
+            --quest-pin: #f59e0b;
+            --border: #e5e7eb;
+            --shadow: 0 4px 20px rgba(0,0,0,0.08);
         }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
         body {
-            margin: 0;
-            padding: 0;
+            margin: 0; padding: 0;
             background-color: var(--bg-color);
-            color: var(--text-main);
             font-family: 'Noto Sans TC', sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
-            overflow-x: hidden;
-            padding-bottom: 80px; /* 留空間給手機版底部 */
+            color: var(--text-main);
+            display: flex; flex-direction: column; align-items: center;
+            min-height: 100vh; padding-bottom: 80px;
         }
 
-        /* --- HUD --- */
-        .hud-bar {
-            width: 100%;
-            max-width: 800px; /* 稍微加寬以容納佈局 */
-            padding: 15px 20px;
-            background: rgba(26, 26, 32, 0.95);
-            border-bottom: 1px solid var(--ui-border);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 5px 20px rgba(0,0,0,0.5);
-            box-sizing: border-box;
+        .app-container {
+            width: 100%; max-width: 500px;
+            background: var(--bg-color); min-height: 100vh;
+            display: flex; flex-direction: column; position: relative;
         }
 
-        .level-info { display: flex; flex-direction: column; min-width: 60px; }
-        .level-label { font-family: 'Orbitron'; font-size: 0.7rem; color: #888; }
-        .level-val { font-family: 'Orbitron'; font-size: 1.5rem; font-weight: 700; color: #fff; text-shadow: 0 0 10px var(--accent-glow); }
+        /* Header */
+        .header {
+            padding: 20px 25px; display: flex; justify-content: space-between; align-items: center;
+            background: var(--bg-color); position: sticky; top: 0; z-index: 50;
+        }
+        .breadcrumb { font-size: 1.1rem; font-weight: bold; display: flex; align-items: center; gap: 5px; color: var(--text-main); }
+        .breadcrumb span { color: var(--text-sub); font-size: 0.9rem; font-weight: normal; }
         
-        .xp-container { flex: 1; margin-left: 20px; margin-right: 20px; }
-        .xp-text { font-size: 0.75rem; text-align: right; margin-bottom: 3px; font-family: 'Orbitron'; color: var(--accent); }
-        .xp-bar-bg { width: 100%; height: 6px; background: #333; border-radius: 4px; overflow: hidden; }
-        .xp-bar-fill { height: 100%; background: var(--accent); width: 0%; transition: width 0.5s ease-out; box-shadow: 0 0 8px var(--accent-glow); }
-
-        /* --- 主佈局 (Grid + Quest Panel) --- */
-        .main-layout {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 20px;
-            width: 100%;
-            max-width: 900px;
-            margin-top: 20px;
-            padding: 0 10px;
+        .icon-btn {
+            background: white; border: 1px solid var(--border); border-radius: 50%; width: 40px; height: 40px;
+            display: flex; align-items: center; justify-content: center; cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05); transition: all 0.2s; color: var(--text-sub);
         }
+        .icon-btn:active { transform: scale(0.95); }
+        .icon-btn.editing { background: var(--edit-color); color: white; border-color: var(--edit-color); box-shadow: 0 0 10px rgba(59, 130, 246, 0.4); }
 
-        /* 左側：曼陀羅 */
-        .mandala-section {
-            flex: 0 0 340px; /* 固定寬度 */
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        /* 右側：每日任務清單 */
-        .quest-panel {
-            flex: 1;
-            min-width: 300px;
-            background: var(--quest-bg);
-            border: 1px solid var(--ui-border);
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-            display: flex;
-            flex-direction: column;
-            max-height: 500px;
-            overflow-y: auto;
-        }
-
-        .quest-header {
-            font-size: 1.1rem;
-            font-weight: bold;
-            border-bottom: 1px solid #444;
-            padding-bottom: 10px;
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            color: #fff;
-        }
-
-        .quest-list {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .quest-item {
-            background: #2a2a30;
-            padding: 12px;
-            border-radius: 8px;
-            border-left: 4px solid #555;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: all 0.2s;
-        }
-
-        .quest-item.done {
-            border-left-color: var(--accent);
-            background: rgba(0, 230, 118, 0.1);
-            opacity: 0.7;
-        }
-
-        .quest-info {
-            display: flex;
-            flex-direction: column;
-        }
-        .quest-cat { font-size: 0.75rem; color: #888; margin-bottom: 2px; }
-        .quest-name { font-size: 0.95rem; color: #e0e0e0; font-weight: 500; }
-        
-        .check-btn {
-            background: transparent;
-            border: 2px solid #666;
-            width: 24px; height: 24px;
-            border-radius: 50%;
-            cursor: pointer;
-            display: flex; align-items: center; justify-content: center;
-            color: transparent;
-            transition: all 0.2s;
-        }
-        .quest-item.done .check-btn {
-            background: var(--accent);
-            border-color: var(--accent);
-            color: #000;
-        }
-
-        .empty-quest {
-            color: #666;
-            text-align: center;
-            margin-top: 20px;
-            font-size: 0.9rem;
-            font-style: italic;
-        }
-
-        /* --- 曼陀羅樣式 (簡化版) --- */
-        .breadcrumb { font-size: 0.9rem; color: #888; height: 20px; display: flex; align-items: center; gap: 5px; margin-bottom: 10px; width: 100%; }
-        .breadcrumb span { color: var(--accent); font-weight: bold; }
-
-        .grid-wrapper { width: 340px; height: 340px; position: relative; }
-        .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; width: 100%; height: 100%; transition: opacity 0.2s; }
+        /* Grid */
+        .grid-section { padding: 10px 20px; display: flex; justify-content: center; }
+        .grid-wrapper { width: 100%; aspect-ratio: 1/1; position: relative; }
+        .grid { display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr); gap: 8px; width: 100%; height: 100%; transition: opacity 0.2s; }
 
         .cell {
-            background-color: var(--card-bg); border-radius: 10px;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            text-align: center; padding: 5px; cursor: pointer;
-            border: 1px solid transparent; box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-            transition: all 0.2s; position: relative; font-size: 0.95rem; font-weight: 500;
-            user-select: none;
+            background: var(--card-bg); border-radius: 12px; display: flex; align-items: center; justify-content: center; padding: 5px;
+            cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border: 2px solid transparent; transition: all 0.2s; position: relative; text-align: center;
         }
-        .cell:hover { background-color: #25252b; transform: translateY(-2px); border-color: #555; }
-        .cell.center { background: linear-gradient(135deg, #333, #111); border: 1px solid #666; color: #fff; z-index: 2; }
-        .cell.active-mode { background-color: rgba(0, 230, 118, 0.05); border-color: var(--accent); color: var(--accent); box-shadow: 0 0 15px rgba(0, 230, 118, 0.15); }
-        .cell.done { background-color: rgba(0, 230, 118, 0.15); border-color: var(--accent); color: var(--accent); font-weight: bold; }
+        .cell textarea {
+            width: 100%; height: 100%; border: none; background: transparent; text-align: center; font-family: inherit; font-size: 0.9rem; font-weight: 500;
+            color: var(--text-main); resize: none; outline: none; pointer-events: none; display: flex; flex-direction: column; justify-content: center; padding-top: 30%;
+        }
+
+        /* Edit Mode */
+        .app-container.is-editing .cell { border-color: #bfdbfe; background: #eff6ff; }
+        .app-container.is-editing .cell textarea { pointer-events: auto; }
+        .app-container.is-editing .cell.center textarea { color: var(--text-main) !important; }
+
+        /* Cell States */
+        .cell.center { background: #2c3e50; color: white; }
+        .cell.center textarea { color: white; font-weight: bold; font-size: 1rem; }
+        .cell.pinned { border-color: var(--quest-pin); background: #fffbeb; }
+        .cell.pinned::after { content: 'push_pin'; font-family: 'Material Icons'; position: absolute; top: 4px; right: 4px; font-size: 14px; color: var(--quest-pin); transform: rotate(45deg); }
+        .cell.done { background: #ecfdf5; color: var(--accent); }
+        .cell.done textarea { color: var(--accent); text-decoration: line-through; }
         .cell.done::after { content: 'check_circle'; font-family: 'Material Icons'; position: absolute; top: 4px; right: 4px; font-size: 14px; color: var(--accent); }
         
-        .cell.highlight { animation: flash 0.2s infinite alternate; z-index: 10; background-color: #fff !important; color: #000 !important; }
-        @keyframes flash { 0% { transform: scale(1); } 100% { transform: scale(1.05); } }
+        .cell.highlight { animation: flash 0.3s infinite alternate; z-index: 10; background-color: var(--quest-pin) !important; color: white !important; }
+        .cell.highlight textarea { color: white !important; }
+        @keyframes flash { from { transform: scale(1); } to { transform: scale(1.05); box-shadow: 0 0 15px rgba(245, 158, 11, 0.6); } }
 
-        /* --- 底部按鈕 --- */
-        .controls {
-            width: 100%;
+        /* --- 中間按鈕區 (優化版) --- */
+        .mid-controls {
+            padding: 10px 20px 20px 20px;
             display: flex;
             justify-content: center;
             gap: 15px;
-            padding: 20px 0;
         }
 
-        .btn {
-            background: #2a2a2a; color: white; border: 1px solid #444;
-            padding: 12px 24px; border-radius: 50px; font-size: 1rem;
-            cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.2s;
+        .btn-pill {
+            padding: 12px 20px;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s;
+            border: none;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            white-space: nowrap; /* 關鍵：防止換行 */
         }
-        .btn:hover { background: #333; border-color: #666; }
-        .btn:active { transform: scale(0.95); }
-        .btn-stats { background: linear-gradient(135deg, #00B4DB, #0083B0); border: none; box-shadow: 0 0 15px rgba(0, 180, 219, 0.3); }
-        .btn-magic { background: linear-gradient(135deg, #FF512F, #DD2476); border: none; box-shadow: 0 0 15px rgba(221, 36, 118, 0.3); }
-        .btn-back { display: none; }
+        .btn-pill:active { transform: scale(0.95); }
 
-        /* --- Modal (通用) --- */
-        .modal-overlay {
+        .btn-random {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white;
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+            flex: 2; /* 隨機按鈕佔比較大 */
+        }
+        .btn-back {
+            background: white;
+            border: 1px solid #ddd;
+            color: var(--text-sub);
+            display: none; /* 預設隱藏 */
+            flex: 1; /* 返回按鈕佔比較小，但保證寬度 */
+            min-width: 100px; /* 確保文字不折行 */
+        }
+
+        /* --- Quest List --- */
+        .quest-section { padding: 0 20px 20px 20px; flex: 1; }
+        .section-title { font-size: 1rem; font-weight: bold; margin-bottom: 15px; display: flex; align-items: center; gap: 5px; color: var(--text-sub); }
+        .quest-list { display: flex; flex-direction: column; gap: 10px; }
+        
+        .quest-item {
+            background: white; padding: 15px; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+            display: flex; justify-content: space-between; align-items: center; border-left: 4px solid var(--quest-pin);
+            animation: slideIn 0.3s ease-out;
+            transition: background 0.5s; /* 閃爍動畫用 */
+        }
+        @keyframes slideIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+        @keyframes newItemPulse { 
+            0% { background-color: #fffbeb; transform: scale(1.02); } 
+            50% { background-color: #fff; transform: scale(1); }
+            100% { background-color: #fffbeb; transform: scale(1.02); }
+        }
+
+        .quest-item.new-added {
+            animation: slideIn 0.3s ease-out, newItemPulse 1s ease-in-out 3;
+            border-color: var(--quest-pin);
+        }
+
+        .quest-item.done { border-left-color: var(--accent); background: #f0fdf4; opacity: 0.7; }
+        .q-info { display: flex; flex-direction: column; }
+        .q-cat { font-size: 0.75rem; color: #999; margin-bottom: 2px; }
+        .q-name { font-size: 1rem; font-weight: 500; }
+        .check-circle { width: 24px; height: 24px; border-radius: 50%; border: 2px solid #ddd; display: flex; align-items: center; justify-content: center; cursor: pointer; color: transparent; transition: all 0.2s; }
+        .quest-item.done .check-circle { background: var(--accent); border-color: var(--accent); color: white; }
+        .empty-state { text-align: center; color: #aaa; padding: 20px; font-size: 0.9rem; border: 2px dashed #e5e7eb; border-radius: 12px; }
+
+        /* --- Bottom Bar --- */
+        .bottom-bar {
+            position: fixed; bottom: 0; left: 0; width: 100%; height: 70px;
+            background: white; box-shadow: 0 -2px 15px rgba(0,0,0,0.05); z-index: 100;
+            padding: 0 20px; display: flex; align-items: center; justify-content: center;
+        }
+        .bottom-content { width: 100%; max-width: 500px; display: flex; align-items: center; gap: 15px; }
+        .lvl-badge {
+            background: #2c3e50; color: white; padding: 5px 10px; border-radius: 8px;
+            font-family: 'Roboto Mono'; font-weight: bold; font-size: 0.9rem;
+            display: flex; flex-direction: column; align-items: center; line-height: 1;
+        }
+        .lvl-badge span { font-size: 0.6rem; opacity: 0.7; margin-bottom: 2px; }
+        .xp-wrapper { flex: 1; }
+        .xp-info { display: flex; justify-content: space-between; font-size: 0.75rem; color: #666; margin-bottom: 4px; font-family: 'Roboto Mono'; }
+        .xp-track { width: 100%; height: 8px; background: #e5e7eb; border-radius: 4px; overflow: hidden; }
+        .xp-fill { height: 100%; background: var(--accent); width: 0%; transition: width 0.5s ease-out; border-radius: 4px; }
+        .stats-btn {
+            background: white; border: 1px solid #3b82f6; color: #3b82f6; width: 40px; height: 40px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s;
+        }
+        .stats-btn:active { transform: scale(0.95); background: #eff6ff; }
+
+        /* --- Modals --- */
+        .modal {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.85); backdrop-filter: blur(5px);
-            z-index: 200; display: none; justify-content: center; align-items: center;
-            opacity: 0; transition: opacity 0.3s;
+            background: rgba(0,0,0,0.5); z-index: 200;
+            display: none; justify-content: center; align-items: center;
+            backdrop-filter: blur(3px); opacity: 0; transition: opacity 0.3s;
         }
-        .modal-overlay.open { display: flex; opacity: 1; }
+        .modal.show { display: flex; opacity: 1; }
+        .modal-box {
+            background: white; width: 90%; max-width: 400px;
+            border-radius: 20px; padding: 25px;
+            position: relative; box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            text-align: center; transform: translateY(20px); transition: transform 0.3s;
+        }
+        .modal.show .modal-box { transform: translateY(0); }
+        .close-modal { position: absolute; top: 15px; right: 15px; cursor: pointer; color: #999; }
         
-        .modal-content {
-            background: #1a1a20; width: 90%; max-width: 400px; padding: 25px;
-            border-radius: 20px; border: 1px solid #444; text-align: center; position: relative;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+        .mission-title { color: var(--quest-pin); font-size: 1.2rem; font-weight: bold; margin-bottom: 5px; }
+        .mission-subtitle { font-size: 0.9rem; color: #666; margin-bottom: 20px; }
+        .mission-card { background: #fffbeb; border: 1px dashed var(--quest-pin); padding: 15px; border-radius: 10px; margin-bottom: 20px; }
+        .mission-cat { font-size: 0.8rem; color: #92400e; font-weight: bold; margin-bottom: 5px; text-transform: uppercase; }
+        .mission-text { font-size: 1.3rem; font-weight: bold; color: #333; }
+        .btn-accept {
+            background: var(--quest-pin); color: white; border: none; width: 100%; padding: 12px; border-radius: 50px;
+            font-size: 1rem; font-weight: bold; cursor: pointer; box-shadow: 0 4px 10px rgba(245, 158, 11, 0.3);
         }
-        .close-btn { position: absolute; top: 15px; right: 15px; background: none; border: none; color: #888; cursor: pointer; font-size: 1.5rem; }
-        
-        /* 新任務 Modal 特效 */
-        .mission-title { color: var(--accent); font-size: 1.5rem; font-weight: bold; margin-bottom: 10px; text-shadow: 0 0 10px var(--accent-glow); }
-        .mission-task { font-size: 1.2rem; margin: 20px 0; color: #fff; border: 1px dashed #555; padding: 15px; border-radius: 10px; }
-        .mission-desc { color: #aaa; font-size: 0.9rem; margin-bottom: 20px; }
-        .btn-accept { background: var(--accent); color: #000; border: none; font-weight: bold; width: 100%; justify-content: center; }
-        .btn-accept:hover { background: #00C853; }
+        .btn-accept:hover { background: #d97706; }
 
-        .chart-container { position: relative; height: 300px; width: 100%; margin-top: 10px; }
-
-        /* RWD */
-        @media (max-width: 700px) {
-            .main-layout { flex-direction: column; align-items: center; }
-            .quest-panel { width: 100%; max-width: 340px; max-height: 300px; }
-        }
     </style>
 </head>
 <body>
 
-    <!-- HUD -->
-    <div class="hud-bar">
-        <div class="level-info">
-            <span class="level-label">LEVEL</span>
-            <span class="level-val" id="levelVal">1</span>
-        </div>
-        <div class="xp-container">
-            <div class="xp-text">XP: <span id="xpText">0 / 100</span></div>
-            <div class="xp-bar-bg">
-                <div class="xp-bar-fill" id="xpBar"></div>
-            </div>
-        </div>
-        <div onclick="openStats()" style="cursor:pointer;">
-            <span class="material-icons" style="color:#00B4DB;">pie_chart</span>
-        </div>
-    </div>
-
-    <!-- 主要區域 -->
-    <div class="main-layout">
-        
-        <!-- 左邊：曼陀羅 -->
-        <div class="mandala-section">
-            <div class="breadcrumb" id="breadcrumb">
-                <span class="material-icons" style="font-size:1.1rem;">home</span> 核心戰略
-            </div>
-            
-            <div class="grid-wrapper">
-                <div class="grid" id="gridContainer"></div>
-            </div>
-
-            <div class="controls">
-                <button class="btn btn-back" id="backBtn" onclick="goBack()">
-                    <span class="material-icons">arrow_back</span> 返回
-                </button>
-                <button class="btn btn-magic" onclick="randomTask()">
-                    <span class="material-icons">casino</span> 抽取每日任務
-                </button>
+    <div class="app-container" id="appContainer">
+        <div class="header">
+            <div class="breadcrumb" id="breadcrumb"><span class="material-icons">home</span> 核心</div>
+            <div class="header-actions">
+                <button class="icon-btn" id="editBtn" onclick="toggleEditMode()" title="編輯模式"><span class="material-icons">edit</span></button>
             </div>
         </div>
 
-        <!-- 右邊：每日任務欄 -->
-        <div class="quest-panel">
-            <div class="quest-header">
-                <span class="material-icons" style="color:var(--accent);">assignment</span>
-                今日副本 (Daily Quest)
-            </div>
-            <div class="quest-list" id="questList">
-                <div class="empty-quest">尚未抽取任務...</div>
-            </div>
+        <div class="grid-section">
+            <div class="grid-wrapper"><div class="grid" id="grid"></div></div>
         </div>
 
-    </div>
+        <div class="mid-controls">
+            <button class="btn-pill btn-back" id="backBtn" onclick="goBack()">
+                <span class="material-icons">arrow_back</span> 返回
+            </button>
+            <button class="btn-pill btn-random" onclick="randomTask()">
+                <span class="material-icons">casino</span> 隨機指派任務
+            </button>
+        </div>
 
-    <!-- 新任務 Modal -->
-    <div class="modal-overlay" id="missionModal">
-        <div class="modal-content">
-            <div class="mission-title">獲得新任務！</div>
-            <div class="mission-desc">命運之輪已經轉動，今天請專注於：</div>
-            <div class="mission-task" id="missionText">Loading...</div>
-            <div class="mission-desc">任務已加入右側清單。<br>完成後記得打勾領取 XP！</div>
-            <button class="btn btn-accept" onclick="closeMissionModal()">接取任務</button>
+        <div class="quest-section">
+            <div class="section-title">
+                <span class="material-icons" style="font-size:18px; color:var(--quest-pin);">assignment</span> 今日副本
+            </div>
+            <div class="quest-list" id="questList"></div>
         </div>
     </div>
 
-    <!-- 雷達圖 Modal -->
-    <div class="modal-overlay" id="statsModal">
-        <div class="modal-content">
-            <button class="close-btn" onclick="closeStats()">&times;</button>
-            <h2 style="color:#fff; margin-bottom:10px;">能力狀態</h2>
-            <div class="chart-container">
+    <div class="bottom-bar">
+        <div class="bottom-content">
+            <div class="lvl-badge"><span>LV.</span><div id="lvlVal">1</div></div>
+            <div class="xp-wrapper">
+                <div class="xp-info"><span>EXP</span><span id="xpVal">0/100</span></div>
+                <div class="xp-track"><div class="xp-fill" id="xpFill"></div></div>
+            </div>
+            <button class="stats-btn" onclick="openStats()" title="能力雷達"><span class="material-icons">pie_chart</span></button>
+        </div>
+    </div>
+
+    <!-- Mission Modal -->
+    <div class="modal" id="missionModal">
+        <div class="modal-box">
+            <div class="mission-title">✨ 命運指示 ✨</div>
+            <div class="mission-subtitle">這個任務選擇了你，準備好了嗎？</div>
+            <div class="mission-card">
+                <div class="mission-cat" id="mCat">類別</div>
+                <div class="mission-text" id="mText">任務名稱</div>
+            </div>
+            <button class="btn-accept" onclick="acceptMission()">接受挑戰，加入副本！</button>
+        </div>
+    </div>
+
+    <!-- Stats Modal -->
+    <div class="modal" id="statsModal">
+        <div class="modal-box">
+            <span class="material-icons close-modal" onclick="closeStats()">close</span>
+            <h3 style="text-align:center; margin-top:0; margin-bottom:10px;">能力雷達圖</h3>
+            <div style="position: relative; height: 300px; width: 100%;">
                 <canvas id="radarChart"></canvas>
             </div>
         </div>
     </div>
 
     <script>
-        // --- 1. 資料結構 ---
         const defaultData = {
-            core: "終身學習",
+            core: "錄取 Google UI/UX/PM",
             sectors: [
                 { title: "身心靈", tasks: ["規律運動", "冥想正念", "睡眠充足", "成長型思維", "自信日記", "社交斷捨離", "情緒管理", "健康飲食"], done: Array(8).fill(false) },
                 { title: "領導管理", tasks: ["專案工具", "OKR 設定", "敏捷開發", "向上管理", "衝突談判", "決策框架", "導師計畫", "專案復盤"], done: Array(8).fill(false) },
@@ -328,280 +289,193 @@
                 { title: "語言表達", tasks: ["英文簡報", "STAR 回答", "模擬面試", "英文寫作", "LinkedIn", "電梯簡報", "Podcast", "英文會議"], done: Array(8).fill(false) },
                 { title: "UI/UX 設計", tasks: ["Figma 進階", "Design System", "Hi-Fi 原型", "微互動", "排版格線", "響應式設計", "App Critique", "開發交付"], done: Array(8).fill(false) }
             ],
-            dailyQuests: [], // 存儲 {sectorIdx, taskIdx}
-            lastLoginDate: ""
+            dailyQuests: [], lastLoginDate: ""
         };
 
-        let mandala = JSON.parse(JSON.stringify(defaultData)); 
-        let currentView = null; 
-        let chartInstance = null;
+        let mandala = JSON.parse(JSON.stringify(defaultData));
+        let currentView = null; let isEditing = false; let chartInstance = null; let tempMission = null;
 
-        // --- 2. 初始化與午夜重置 ---
         function init() {
-            const saved = localStorage.getItem('careerRPG_quest');
-            if (saved) {
-                mandala = JSON.parse(saved);
-            }
-            
-            checkDailyReset();
-            calculateStats();
-            renderGrid();
-            renderQuestList();
+            const saved = localStorage.getItem('mandala_lite_v4');
+            if (saved) mandala = JSON.parse(saved);
+            checkDailyReset(); calculateXP(); renderGrid(); renderQuestList();
         }
-
+        function saveData() { localStorage.setItem('mandala_lite_v4', JSON.stringify(mandala)); calculateXP(); }
         function checkDailyReset() {
-            const today = new Date().toDateString(); // 格式: "Fri Nov 22 2024"
-            
-            if (mandala.lastLoginDate !== today) {
-                // 換日了，清空每日任務
-                mandala.dailyQuests = [];
-                mandala.lastLoginDate = today;
-                saveData();
-                console.log("Daily Quests Reset!");
-            }
+            const today = new Date().toDateString();
+            if (mandala.lastLoginDate !== today) { mandala.dailyQuests = []; mandala.lastLoginDate = today; saveData(); }
+        }
+        function calculateXP() {
+            let totalDone = 0; mandala.sectors.forEach(s => totalDone += s.done.filter(Boolean).length);
+            const xp = totalDone * 10; const level = Math.floor(xp / 100) + 1; const xpInLevel = xp % 100;
+            document.getElementById('lvlVal').innerText = level;
+            document.getElementById('xpVal').innerText = `${xpInLevel}/100`;
+            document.getElementById('xpFill').style.width = `${xpInLevel}%`;
         }
 
-        function saveData() {
-            localStorage.setItem('careerRPG_quest', JSON.stringify(mandala));
-            calculateStats();
+        function toggleEditMode() {
+            isEditing = !isEditing;
+            const container = document.getElementById('appContainer');
+            const btn = document.getElementById('editBtn');
+            if (isEditing) { container.classList.add('is-editing'); btn.classList.add('editing'); } 
+            else { container.classList.remove('is-editing'); btn.classList.remove('editing'); }
+            renderGrid(); 
         }
-
-        function calculateStats() {
-            let totalDone = 0;
-            mandala.sectors.forEach(s => {
-                totalDone += s.done.filter(Boolean).length;
-            });
-
-            const currentXP = totalDone * 10;
-            const level = Math.floor(currentXP / 100) + 1;
-            const xpInLevel = currentXP % 100;
-
-            document.getElementById('levelVal').innerText = level;
-            document.getElementById('xpText').innerText = `${xpInLevel} / 100 XP`;
-            document.getElementById('xpBar').style.width = `${xpInLevel}%`;
-        }
-
-        // --- 3. 每日任務系統 ---
-        function renderQuestList() {
-            const listEl = document.getElementById('questList');
-            listEl.innerHTML = '';
-
-            if (mandala.dailyQuests.length === 0) {
-                listEl.innerHTML = '<div class="empty-quest">尚未抽取任務...<br>點擊左側按鈕抽取</div>';
-                return;
-            }
-
-            mandala.dailyQuests.forEach((q, index) => {
-                const sector = mandala.sectors[q.sectorIdx];
-                const taskName = sector.tasks[q.taskIdx];
-                const isDone = sector.done[q.taskIdx];
-
-                const item = document.createElement('div');
-                item.className = `quest-item ${isDone ? 'done' : ''}`;
-                item.innerHTML = `
-                    <div class="quest-info">
-                        <div class="quest-cat">${sector.title}</div>
-                        <div class="quest-name">${taskName}</div>
-                    </div>
-                    <button class="check-btn" onclick="toggleDailyQuest(${index})">
-                        <span class="material-icons" style="font-size:16px;">check</span>
-                    </button>
-                `;
-                listEl.appendChild(item);
-            });
-        }
-
-        function toggleDailyQuest(qIndex) {
-            const q = mandala.dailyQuests[qIndex];
-            // 切換該任務狀態
-            mandala.sectors[q.sectorIdx].done[q.taskIdx] = !mandala.sectors[q.sectorIdx].done[q.taskIdx];
-            
+        function updateData(type, sIdx, tIdx, val) {
+            if (type === 'core') mandala.core = val;
+            if (type === 'sector') mandala.sectors[sIdx].title = val;
+            if (type === 'task') { mandala.sectors[sIdx].tasks[tIdx] = val; renderQuestList(); }
             saveData();
-            renderQuestList(); // 更新清單
-            renderGrid(); // 如果左邊剛好顯示該頁面，也要更新
-            
-            if (mandala.sectors[q.sectorIdx].done[q.taskIdx] && navigator.vibrate) navigator.vibrate(50);
+        }
+
+        const gridEl = document.getElementById('grid');
+        const breadEl = document.getElementById('breadcrumb');
+        const backBtn = document.getElementById('backBtn');
+
+        function renderGrid() {
+            gridEl.innerHTML = '';
+            if (currentView === null) {
+                breadEl.innerHTML = `<span class="material-icons" style="font-size:1.1rem;">home</span> 核心戰略`;
+                backBtn.style.display = 'none';
+                for (let i = 0; i < 9; i++) {
+                    const cell = document.createElement('div');
+                    const sIdx = getSectorIndex(i);
+                    if (i === 4) {
+                        cell.className = 'cell center';
+                        cell.innerHTML = `<textarea oninput="updateData('core',0,0,this.value)">${mandala.core}</textarea>`;
+                    } else {
+                        cell.className = 'cell';
+                        cell.innerHTML = `<textarea oninput="updateData('sector',${sIdx},0,this.value)">${mandala.sectors[sIdx].title}</textarea>`;
+                        cell.onclick = (e) => { if (!isEditing) { currentView = sIdx; renderGrid(); } };
+                    }
+                    gridEl.appendChild(cell);
+                }
+            } else {
+                const sector = mandala.sectors[currentView];
+                breadEl.innerHTML = `<span class="material-icons" style="font-size:1.1rem; color:var(--text-sub);">home</span> > <span>${sector.title}</span>`;
+                backBtn.style.display = 'flex';
+                for (let i = 0; i < 9; i++) {
+                    const cell = document.createElement('div');
+                    const tIdx = getSectorIndex(i);
+                    if (i === 4) {
+                        cell.className = 'cell center';
+                        cell.innerHTML = `<textarea oninput="updateData('sector',${currentView},0,this.value)">${sector.title}</textarea>`;
+                    } else {
+                        const isDone = sector.done[tIdx];
+                        const isPinned = mandala.dailyQuests.some(q => q.sectorIdx === currentView && q.taskIdx === tIdx);
+                        cell.className = `cell ${isDone ? 'done' : ''} ${isPinned && !isDone ? 'pinned' : ''}`;
+                        cell.innerHTML = `<textarea oninput="updateData('task',${currentView},${tIdx},this.value)">${sector.tasks[tIdx]}</textarea>`;
+                        cell.onclick = (e) => { if (!isEditing) { toggleQuest(currentView, tIdx); } };
+                    }
+                    gridEl.appendChild(cell);
+                }
+            }
+        }
+        function getSectorIndex(i) { if (i < 4) return i; if (i > 4) return i - 1; return -1; }
+        function goBack() { currentView = null; renderGrid(); }
+
+        function toggleQuest(sIdx, tIdx) {
+            const qIndex = mandala.dailyQuests.findIndex(q => q.sectorIdx === sIdx && q.taskIdx === tIdx);
+            if (qIndex !== -1) mandala.dailyQuests.splice(qIndex, 1);
+            else mandala.dailyQuests.push({ sectorIdx: sIdx, taskIdx: tIdx });
+            saveData(); renderGrid(); renderQuestList();
         }
 
         function randomTask() {
-            // 1. 尋找候選任務 (未完成的)
             const candidates = [];
             mandala.sectors.forEach((s, sIdx) => {
                 s.done.forEach((isDone, tIdx) => {
-                    // 排除已經在每日清單中的任務
                     const inDaily = mandala.dailyQuests.some(q => q.sectorIdx === sIdx && q.taskIdx === tIdx);
-                    if (!isDone && !inDaily) {
-                        candidates.push({ sectorIdx: sIdx, taskIdx: tIdx });
-                    }
+                    if (!isDone && !inDaily) candidates.push({ sectorIdx: sIdx, taskIdx: tIdx });
                 });
             });
-
-            if (candidates.length === 0) {
-                alert("太強了！所有任務都已完成或已加入清單！");
-                return;
-            }
-
-            // 2. 隨機抽選
+            if (candidates.length === 0) { alert("太強了！目前沒有可分派的任務！"); return; }
             const choice = candidates[Math.floor(Math.random() * candidates.length)];
-            
-            // 3. 動畫效果：先跳轉到該頁面
-            currentView = choice.sectorIdx;
-            renderGrid();
-
-            // 4. Grid 閃爍特效
+            currentView = choice.sectorIdx; renderGrid();
             setTimeout(() => {
                 let gridTarget = (choice.taskIdx < 4) ? choice.taskIdx : choice.taskIdx + 1;
                 const cells = document.querySelectorAll('.cell');
                 let count = 0;
                 const interval = setInterval(() => {
                     cells.forEach(c => c.classList.remove('highlight'));
-                    const r = Math.floor(Math.random() * 9);
-                    if(r!==4) cells[r].classList.add('highlight');
+                    const r = Math.floor(Math.random() * 9); if(r!==4) cells[r].classList.add('highlight');
                     count++;
-                    if (count > 10) {
+                    if (count > 12) {
                         clearInterval(interval);
                         cells.forEach(c => c.classList.remove('highlight'));
                         cells[gridTarget].classList.add('highlight');
-                        
-                        // 5. 加入每日清單 & 顯示 Modal
-                        addDailyQuest(choice);
+                        openMissionModal(choice);
                     }
                 }, 80);
             }, 300);
         }
 
-        function addDailyQuest(questObj) {
-            mandala.dailyQuests.push(questObj);
-            saveData();
-            renderQuestList();
-            
-            // Show Modal
-            const sector = mandala.sectors[questObj.sectorIdx];
-            const taskName = sector.tasks[questObj.taskIdx];
-            document.getElementById('missionText').innerText = `【${sector.title}】\n${taskName}`;
-            document.getElementById('missionModal').classList.add('open');
+        function openMissionModal(choice) {
+            tempMission = choice;
+            const sector = mandala.sectors[choice.sectorIdx];
+            document.getElementById('mCat').innerText = sector.title;
+            document.getElementById('mText').innerText = sector.tasks[choice.taskIdx];
+            document.getElementById('missionModal').classList.add('show');
         }
 
-        function closeMissionModal() {
-            document.getElementById('missionModal').classList.remove('open');
-        }
-
-        // --- 4. 渲染 Grid (與之前相同) ---
-        const gridEl = document.getElementById('gridContainer');
-        const breadEl = document.getElementById('breadcrumb');
-        const backBtn = document.getElementById('backBtn');
-
-        function renderGrid() {
-            gridEl.style.opacity = 0;
-            setTimeout(() => {
-                gridEl.innerHTML = '';
-                if (currentView === null) renderMainView();
-                else renderSectorView(currentView);
-                gridEl.style.opacity = 1;
-            }, 100);
-        }
-
-        function getSectorIndex(gridIndex) {
-            if (gridIndex < 4) return gridIndex;
-            if (gridIndex > 4) return gridIndex - 1;
-            return -1;
-        }
-
-        function renderMainView() {
-            breadEl.innerHTML = `<span class="material-icons" style="font-size:1.1rem;">home</span> 核心戰略`;
-            backBtn.style.display = 'none';
-
-            for (let i = 0; i < 9; i++) {
-                const cell = document.createElement('div');
-                if (i === 4) {
-                    cell.className = 'cell center';
-                    cell.innerText = mandala.core;
-                } else {
-                    const sectorIdx = getSectorIndex(i);
-                    const sector = mandala.sectors[sectorIdx];
-                    const doneCount = sector.done.filter(Boolean).length;
-                    const total = sector.tasks.length;
-                    const isActive = doneCount === total && total > 0;
-
-                    cell.className = `cell ${isActive ? 'active-mode' : ''}`;
-                    cell.innerHTML = `<div style="font-weight:bold; font-size:1rem;">${sector.title}</div>`;
-                    cell.onclick = () => { currentView = sectorIdx; renderGrid(); };
-                }
-                gridEl.appendChild(cell);
+        function acceptMission() {
+            if (tempMission) {
+                mandala.dailyQuests.push(tempMission);
+                saveData(); renderQuestList(); renderGrid();
+                
+                // ★ 自動捲動到最新任務
+                setTimeout(() => {
+                    const list = document.getElementById('questList');
+                    const newItem = list.lastElementChild;
+                    if (newItem) {
+                        newItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        newItem.classList.add('new-added'); // 觸發閃爍動畫
+                    }
+                }, 200);
+                
+                tempMission = null;
             }
+            document.getElementById('missionModal').classList.remove('show');
         }
 
-        function renderSectorView(sectorIdx) {
-            const sector = mandala.sectors[sectorIdx];
-            breadEl.innerHTML = `核心 > <span>${sector.title}</span>`;
-            backBtn.style.display = 'flex';
-
-            for (let i = 0; i < 9; i++) {
-                const cell = document.createElement('div');
-                if (i === 4) {
-                    cell.className = 'cell center';
-                    cell.innerText = sector.title;
-                } else {
-                    const taskIdx = getSectorIndex(i);
-                    const isDone = sector.done[taskIdx];
-                    cell.className = `cell ${isDone ? 'done' : ''}`;
-                    cell.innerText = sector.tasks[taskIdx];
-                    
-                    // 在 Grid 裡也可以直接打勾
-                    cell.onclick = () => {
-                        sector.done[taskIdx] = !sector.done[taskIdx];
-                        saveData();
-                        renderGrid();
-                        renderQuestList(); // 更新右邊狀態
-                        if (sector.done[taskIdx] && navigator.vibrate) navigator.vibrate(50);
-                    };
-                }
-                gridEl.appendChild(cell);
+        function renderQuestList() {
+            const listEl = document.getElementById('questList');
+            listEl.innerHTML = '';
+            if (mandala.dailyQuests.length === 0) {
+                listEl.innerHTML = `<div class="empty-state">今天還沒有任務<br>點擊隨機按鈕或格子加入</div>`; return;
             }
+            mandala.dailyQuests.forEach((q, index) => {
+                const sector = mandala.sectors[q.sectorIdx];
+                const item = document.createElement('div');
+                const isDone = sector.done[q.taskIdx];
+                item.className = `quest-item ${isDone ? 'done' : ''}`;
+                item.innerHTML = `
+                    <div class="q-info"><div class="q-cat">${sector.title}</div><div class="q-name">${sector.tasks[q.taskIdx]}</div></div>
+                    <div class="check-circle"><span class="material-icons" style="font-size:16px;">check</span></div>
+                `;
+                item.onclick = () => {
+                    mandala.sectors[q.sectorIdx].done[q.taskIdx] = !mandala.sectors[q.sectorIdx].done[q.taskIdx];
+                    saveData(); renderQuestList(); renderGrid();
+                    if (mandala.sectors[q.sectorIdx].done[q.taskIdx] && navigator.vibrate) navigator.vibrate(50);
+                };
+                listEl.appendChild(item);
+            });
         }
 
-        function goBack() { currentView = null; renderGrid(); }
-
-        // --- 5. Stats ---
-        function openStats() { document.getElementById('statsModal').classList.add('open'); renderChart(); }
-        function closeStats() { document.getElementById('statsModal').classList.remove('open'); }
-
+        function openStats() { document.getElementById('statsModal').classList.add('show'); renderChart(); }
+        function closeStats() { document.getElementById('statsModal').classList.remove('show'); }
         function renderChart() {
             const ctx = document.getElementById('radarChart').getContext('2d');
             const labels = mandala.sectors.map(s => s.title);
-            const data = mandala.sectors.map(s => {
-                const done = s.done.filter(Boolean).length;
-                return (done / s.tasks.length) * 100;
-            });
-
+            const data = mandala.sectors.map(s => s.done.filter(Boolean).length);
             if (chartInstance) chartInstance.destroy();
-
             chartInstance = new Chart(ctx, {
                 type: 'radar',
                 data: {
                     labels: labels,
-                    datasets: [{
-                        label: '目前狀態',
-                        data: data,
-                        backgroundColor: 'rgba(0, 230, 118, 0.2)',
-                        borderColor: '#00E676',
-                        pointBackgroundColor: '#fff',
-                        borderWidth: 2,
-                        pointRadius: 3
-                    }]
+                    datasets: [{ label: '完成數 (0-8)', data: data, backgroundColor: 'rgba(16, 185, 129, 0.2)', borderColor: '#10b981', pointBackgroundColor: '#fff', borderWidth: 2 }]
                 },
-                options: {
-                    scales: {
-                        r: {
-                            angleLines: { color: '#444' },
-                            grid: { color: '#333' },
-                            pointLabels: { color: '#ccc', font: { size: 11 } },
-                            suggestedMin: 0, suggestedMax: 100,
-                            ticks: { display: false, backdropColor: 'transparent' }
-                        }
-                    },
-                    plugins: { legend: { display: false } }
-                }
+                options: { scales: { r: { min: 0, max: 8, ticks: { display: false }, pointLabels: { font: { size: 11, family: "'Noto Sans TC'" } } } }, plugins: { legend: { display: false } } }
             });
         }
 
