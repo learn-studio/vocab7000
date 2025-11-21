@@ -71,13 +71,19 @@
         
         .avatar-caption {
             margin-top: 15px;
-            font-size: 0.9em;
+            font-size: 0.85em;
             color: #888;
             font-family: 'Courier New', Courier, monospace;
         }
 
         /* --- 右側：文字與技能區 --- */
-        .content-section { flex: 1; }
+        .content-section {
+            flex: 1;
+            /* 
+               為了讓手機版可以使用 order 排序，
+               這裡預設為 block，手機版會改成 flex 
+            */
+        }
 
         h1 {
             font-size: 2.4em;
@@ -87,63 +93,40 @@
             letter-spacing: 1px;
         }
 
+        /* 
+           ★ 修改處：字體變小 
+        */
         .bio-text {
-            font-size: 0.9em;
-            line-height: 1.7;
+            font-size: 0.95rem; /* 原本是 1.1em，現在調小 */
+            line-height: 1.6;
             color: #555;
             margin-bottom: 30px;
         }
 
-        /* 
-         * ★ Email 複製按鈕樣式 (重點修改處)
-         */
+        /* Email 區塊 */
         .contact-info {
-            display: inline-flex; /* 讓內容水平對齊 */
+            display: inline-flex;
             align-items: center;
             margin-bottom: 30px;
             padding: 10px 20px;
             background: #f4f4f4;
             color: #333;
             border-radius: 8px;
-            font-size: 1em;
+            font-size: 0.95em;
             font-family: monospace;
-            cursor: pointer; /* 變手指 */
+            cursor: pointer;
             transition: all 0.2s;
-            position: relative; /* 定位用 */
-            user-select: none; /* 防止點擊時反白文字 */
+            user-select: none;
         }
 
         .contact-info:hover {
-            background-color: #e0e0e0; /* Hover 變深一點 */
-            transform: translateY(-2px); /* 輕微上浮 */
-        }
-
-        .contact-info:active {
-            transform: translateY(0); /* 按下效果 */
+            background-color: #e0e0e0;
+            transform: translateY(-2px);
         }
         
-        /* 複製圖示 */
-        .copy-icon {
-            font-size: 18px;
-            margin-left: 10px;
-            color: #888;
-        }
-
-        /* 複製成功的提示文字 */
-        .copy-msg {
-            margin-left: 10px;
-            font-size: 0.9em;
-            color: #4CAF50; /* 成功綠色 */
-            font-weight: bold;
-            opacity: 0;
-            transition: opacity 0.3s;
-            display: none; /* 預設不佔空間 */
-        }
-        
-        .copy-msg.show {
-            display: inline;
-            opacity: 1;
-        }
+        .copy-icon { font-size: 18px; margin-left: 10px; color: #888; }
+        .copy-msg { margin-left: 10px; font-size: 0.9em; color: #4CAF50; font-weight: bold; opacity: 0; display: none; }
+        .copy-msg.show { display: inline; opacity: 1; }
 
         /* 技能按鈕區 */
         .skills-grid {
@@ -158,7 +141,7 @@
             padding: 8px 16px;
             border-radius: 50px;
             cursor: pointer;
-            font-size: 0.95em;
+            font-size: 0.9em; /* 按鈕文字也稍微縮小 */
             color: #666;
             transition: all 0.2s;
             display: flex;
@@ -166,35 +149,51 @@
             gap: 6px;
         }
 
-        .skill-btn:hover {
-            border-color: #333;
-            color: #000;
-        }
-
-        .skill-btn.active {
-            background: #333;
-            color: #fff;
-            border-color: #333;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-        }
-
+        .skill-btn:hover { border-color: #333; color: #000; }
+        .skill-btn.active { background: #333; color: #fff; border-color: #333; transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
         .btn-icon { font-size: 18px; }
 
+        /* --- RWD 手機版設定 --- */
         @media (max-width: 768px) {
-            .container { margin: 30px auto; }
+            .container { margin: 20px auto; padding: 0 15px; }
+            
             .profile-card {
                 flex-direction: column;
                 align-items: center;
                 padding: 30px 20px;
-                gap: 30px;
+                gap: 20px; /* 縮小像素圖跟內容的間距 */
                 text-align: center;
             }
+
             .avatar-section { flex: auto; width: 100%; }
-            .content-section { width: 100%; }
-            .skills-grid { justify-content: center; }
-            h1 { font-size: 1.8em; }
-            .bio-text { text-align: left; }
+
+            /* 
+               ★ 關鍵修改：重新排序內容 
+            */
+            .content-section {
+                display: flex;
+                flex-direction: column;
+                width: 100%;
+            }
+
+            /* 將按鈕區 (.skills-grid) 移到最上面 (order: -1) */
+            .skills-grid {
+                order: -1; 
+                justify-content: center;
+                margin-bottom: 30px; /* 按鈕跟下方文字的距離 */
+                padding-bottom: 20px;
+                border-bottom: 1px dashed #eee; /* 加個虛線分隔，視覺比較清楚 */
+            }
+
+            h1 { font-size: 1.8em; margin-bottom: 15px; }
+            
+            .contact-info { margin-bottom: 20px; }
+            
+            /* 文字靠左讀起來比較舒服，或者維持置中也可以，這邊設定靠左 */
+            .bio-text { 
+                text-align: left; 
+                font-size: 0.95rem; /* 手機上保持清晰 */
+            }
         }
     </style>
 </head>
@@ -205,11 +204,10 @@
     <div class="container">
         <div class="profile-card">
             
-            <!-- 左側：像素人物 -->
+            <!-- 左側 (手機變上方)：像素人物 -->
             <div class="avatar-section">
                 <div class="pixel-canvas">
                     <svg class="pixel-svg" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges">
-                        <!-- 基礎人物 -->
                         <g id="base-character" fill="#333">
                             <rect x="12" y="16" width="8" height="10" />
                             <rect x="13" y="26" width="2" height="4" />
@@ -226,63 +224,47 @@
                             <rect x="22" y="7" width="3" height="4" />
                             <rect x="23" y="11" width="2" height="2" />
                         </g>
-
-                        <!-- UI設計 - 白色眼鏡 -->
                         <g id="prop-glasses" class="equip-layer">
                             <rect x="11" y="10" width="4" height="2" fill="#f0f0f0" />
                             <rect x="17" y="10" width="4" height="2" fill="#f0f0f0" />
                             <rect x="15" y="11" width="2" height="1" fill="#f0f0f0" />
                         </g>
-
-                        <!-- UX方法論 - 帽子 -->
                         <g id="prop-hat" class="equip-layer">
                             <rect x="8" y="4" width="16" height="2" fill="#333" />
                             <rect x="12" y="2" width="8" height="2" fill="#333" />
                             <rect x="23" y="4" width="1" height="4" fill="#333" />
                         </g>
-
-                        <!-- 終身學習 - 書本 -->
                         <g id="prop-book" class="equip-layer">
                             <rect x="21" y="20" width="6" height="5" fill="#333" />
                             <rect x="22" y="21" width="4" height="3" fill="#fff" />
                         </g>
-
-                        <!-- 心理學 - 愛心 -->
                         <g id="prop-heart" class="equip-layer">
                             <path d="M25 5 h2 v-2 h2 v2 h2 v2 h-2 v2 h-2 v-2 h-2 z" fill="#333"/>
                         </g>
-
-                        <!-- 溝通力 - 對話框 -->
                         <g id="prop-chat" class="equip-layer">
                             <rect x="3" y="4" width="6" height="5" fill="#333" />
                             <rect x="4" y="5" width="4" height="3" fill="#fff" />
                             <rect x="5" y="6" width="1" height="1" fill="#333" />
                             <rect x="7" y="6" width="1" height="1" fill="#333" />
                         </g>
-
-                        <!-- 跨界整合 - 魔法棒 -->
                         <g id="prop-wand" class="equip-layer">
                              <rect x="8" y="14" width="2" height="8" fill="#333" transform="rotate(-15 9 18)"/>
                              <rect x="7" y="12" width="2" height="2" fill="#333" />
                         </g>
                     </svg>
                 </div>
-                <div class="avatar-caption">SR. DESIGNER</div>
+                <div class="avatar-caption">LEVEL 1 DESIGNER</div>
             </div>
 
-            <!-- 右側：文字內容 -->
+            <!-- 右側 (手機變下方) -->
             <div class="content-section">
+                <!-- 手機版時，.skills-grid 會透過 CSS order: -1 跑到這裡 -->
+                
                 <h1>Hi, 我是 Betty C.</h1>
                 
-                <!-- 
-                    ★ 修改處：點擊複製區塊 
-                    onclick="copyEmail()" 綁定複製功能
-                -->
                 <div class="contact-info" onclick="copyEmail()" title="點擊複製 Email">
                     <span id="email-text">bochen722@gmail.com</span>
-                    <!-- 預設顯示圖示 -->
                     <span class="material-icons copy-icon" id="copy-icon">content_copy</span>
-                    <!-- 複製成功顯示文字 -->
                     <span class="copy-msg" id="copy-msg">已複製！</span>
                 </div>
 
@@ -293,6 +275,7 @@
                     下方是我的技能樹，點擊按鈕看看我裝備了什麼：
                 </div>
 
+                <!-- 技能按鈕區 -->
                 <div class="skills-grid">
                     <button class="skill-btn" onclick="toggleProp('glasses', this)">
                         <span class="material-icons btn-icon">visibility</span> UI 設計
@@ -318,9 +301,7 @@
         </div>
     </div>
 
-    <!-- JS 功能區 -->
     <script>
-        // 1. 換裝功能
         function toggleProp(propName, btn) {
             btn.classList.toggle('active');
             const layer = document.getElementById('prop-' + propName);
@@ -333,33 +314,20 @@
             }
         }
 
-        // 2. 複製 Email 功能
         function copyEmail() {
             const email = "bochen722@gmail.com";
-            
-            // 使用 Clipboard API 複製文字
             navigator.clipboard.writeText(email).then(() => {
-                // 成功後的 UI 回饋
                 const icon = document.getElementById('copy-icon');
                 const msg = document.getElementById('copy-msg');
-                
-                // 隱藏圖示，顯示「已複製！」
                 icon.style.display = 'none';
                 msg.classList.add('show');
-
-                // 2秒後還原
                 setTimeout(() => {
                     msg.classList.remove('show');
                     icon.style.display = 'inline';
                 }, 2000);
-            }).catch(err => {
-                console.error('複製失敗: ', err);
-            });
+            }).catch(err => console.error('複製失敗: ', err));
         }
-    </script>
 
-    <script>
-        // 載入 Header
         fetch('header.html')
             .then(response => response.text())
             .then(data => {
