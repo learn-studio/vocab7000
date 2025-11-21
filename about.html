@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>關於作者 - Betty C.</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    
+    <style>
+        /* --- 全局設定 --- */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #F9F7F2; /* 文青米白底色 */
+            margin: 0; padding: 0;
+            color: #555;
+            display: flex; flex-direction: column; min-height: 100vh;
+        }
+
+        /* --- 這裡整合了之前的 Header CSS --- */
+        .site-header {
+            width: 100%; height: 60px; background-color: #ffffff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 20px; box-sizing: border-box;
+            position: sticky; top: 0; z-index: 1000; flex-shrink: 0;
+        }
+        .header-logo { font-size: 1.4em; font-weight: bold; color: #333; text-decoration: none; display: flex; align-items: center; gap: 8px; }
+        .header-logo span { color: #7FA99B; } /* 改為文青綠 */
+        .desktop-nav { display: flex; align-items: center; gap: 25px; }
+        .nav-item { text-decoration: none; color: #666; font-weight: 500; font-size: 16px; cursor: pointer; transition: color 0.2s; }
+        .nav-item:hover { color: #7FA99B; }
+        .dropdown { position: relative; display: flex; align-items: center; height: 60px; }
+        .dropdown-content { display: none; position: absolute; top: 60px; right: 0; background-color: #fff; min-width: 160px; box-shadow: 0 8px 16px rgba(0,0,0,0.1); border-radius: 0 0 8px 8px; overflow: hidden; }
+        .dropdown:hover .dropdown-content { display: block; animation: fadeIn 0.2s; }
+        .dropdown-content a { color: #333; padding: 12px 16px; text-decoration: none; display: block; transition: background 0.1s; }
+        .dropdown-content a:hover { background-color: #f5f5f5; color: #7FA99B; }
+        .mobile-menu-btn { display: none; background: none; border: none; font-size: 28px; color: #333; cursor: pointer; }
+        .mobile-nav-overlay { display: none; position: absolute; top: 60px; left: 0; width: 100%; background: white; box-shadow: 0 4px 8px rgba(0,0,0,0.1); flex-direction: column; border-top: 1px solid #eee; }
+        .mobile-nav-overlay a { padding: 15px 20px; border-bottom: 1px solid #f0f0f0; text-decoration: none; color: #333; display: block; }
+        .mobile-sub-item { background-color: #fafafa; padding-left: 40px !important; color: #666 !important; }
+        
+        @media (max-width: 768px) {
+            .desktop-nav { display: none; }
+            .mobile-menu-btn { display: block; }
+            .mobile-nav-overlay.open { display: flex; }
+        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* --- 作者頁主要內容 --- */
+        .container {
+            max-width: 900px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 40px 20px;
+            box-sizing: border-box;
+            flex: 1;
+        }
+
+        .intro-section {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        h1 {
+            font-size: 2.2em;
+            color: #4A4A4A;
+            margin-bottom: 20px;
+            letter-spacing: 2px;
+        }
+
+        .bio-text {
+            font-size: 1.1em;
+            line-height: 1.8;
+            color: #666;
+            max-width: 600px;
+            margin: 0 auto 20px auto;
+        }
+
+        .contact-info {
+            background: #fff;
+            display: inline-block;
+            padding: 10px 25px;
+            border-radius: 50px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            color: #7FA99B;
+            font-weight: bold;
+        }
+
+        /* --- 互動遊戲區塊 --- */
+        .interactive-area {
+            display: flex;
+            justify-content: center;
+            gap: 60px;
+            align-items: center;
+            background: #fff;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.03);
+            border: 1px solid #f0f0f0;
+        }
+
+        /* 左側：試衣間 (SVG 容器) */
+        .pixel-avatar-container {
+            width: 280px;
+            height: 340px;
+            background-color: #F2F0EB; /* 試衣間背景 */
+            border-radius: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            position: relative;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.05);
+            border: 4px solid #E5E0D8;
+        }
+
+        /* 像素 SVG */
+        .pixel-svg {
+            width: 100%;
+            height: 100%;
+            /* 讓 SVG 呈現像素風格的關鍵：關閉反鋸齒 */
+            image-rendering: pixelated; 
+            shape-rendering: crispEdges;
+        }
+
+        /* 裝備顯示動畫 */
+        .equipment-layer {
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .equipment-layer.visible {
+            opacity: 1;
+        }
+
+        /* 右側：控制面板 */
+        .controls-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            max-width: 400px;
+        }
+
+        .skill-btn {
+            background: white;
+            border: 2px solid #EAE6DF;
+            padding: 15px 10px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 1rem;
+            color: #888;
+            transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            min-width: 140px;
+        }
+
+        .skill-btn:hover {
+            border-color: #CFCBC4;
+            background: #FAFAFA;
+            transform: translateY(-2px);
+        }
+
+        .skill-btn.active {
+            background: #fff;
+            color: #555;
+            font-weight: bold;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border-color: transparent;
+        }
+
+        /* 各個按鈕的激活顏色 (文青色系) */
+        .skill-btn[data-target="glasses"].active { border-left: 5px solid #607D8B; } /* 藍灰 */
+        .skill-btn[data-target="hat"].active { border-left: 5px solid #3E4A61; } /* 深藍 */
+        .skill-btn[data-target="robe"].active { border-left: 5px solid #8DA399; } /* 鼠尾草綠 */
+        .skill-btn[data-target="necklace"].active { border-left: 5px solid #D4A5A5; } /* 乾燥玫瑰 */
+        .skill-btn[data-target="shoes"].active { border-left: 5px solid #D9C589; } /* 芥末黃 */
+        .skill-btn[data-target="wand"].active { border-left: 5px solid #BCAAA4; } /* 奶茶色 */
+
+        .btn-icon {
+            font-size: 24px;
+            opacity: 0.5;
+        }
+        .skill-btn.active .btn-icon {
+            opacity: 1;
+            color: #333;
+        }
+
+        /* RWD 手機版 */
+        @media (max-width: 768px) {
+            .interactive-area {
+                flex-direction: column;
+                padding: 20px;
+                gap: 30px;
+            }
+            .controls-container {
+                grid-template-columns: repeat(2, 1fr);
+                width: 100%;
+            }
+            .skill-btn {
+                min-width: auto;
+            }
+            h1 { font-size: 1.8em; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ================= HEADER 開始 ================= -->
+<style>
+    /* --- Header CSS --- */
+    .site-header {
+        width: 100%;
+        height: 60px;
+        background-color: #ffffff;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 20px;
+        box-sizing: border-box;
+        position: relative;
+        z-index: 1000; /* 確保在內容之上，但在 loading 之下 */
+        flex-shrink: 0; /* 防止被 flex 佈局壓縮 */
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    /* Logo 區域 */
+    .header-logo {
+        font-size: 1.4em;
+        font-weight: bold;
+        color: #333;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .header-logo span { color: #4CAF50; } /* Logo 點綴色 */
+
+    /* 電腦版導航選單 */
+    .desktop-nav {
+        display: flex;
+        align-items: center;
+        gap: 25px;
+    }
+
+    .nav-item {
+        text-decoration: none;
+        color: #555;
+        font-weight: 500;
+        font-size: 16px;
+        cursor: pointer;
+        position: relative;
+        transition: color 0.2s;
+    }
+    .nav-item:hover { color: #4CAF50; }
+
+    /* 下拉選單容器 */
+    .dropdown {
+        position: relative;
+        display: inline-block;
+        height: 60px; /* 與 header 同高以方便 hover */
+        display: flex;
+        align-items: center;
+    }
+
+    /* 下拉選單內容 */
+    .dropdown-content {
+        display: none;
+        position: absolute;
+        top: 60px; /* Header 高度 */
+        right: 0;
+        background-color: #fff;
+        min-width: 160px;
+        box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+        border-radius: 0 0 8px 8px;
+        overflow: hidden;
+        z-index: 1001;
+    }
+
+    .dropdown:hover .dropdown-content {
+        display: block;
+        animation: fadeIn 0.2s ease-in-out;
+    }
+
+    .dropdown-content a {
+        color: #333;
+        padding: 12px 16px;
+        text-decoration: none;
+        display: block;
+        font-size: 15px;
+        transition: background 0.1s;
+    }
+    .dropdown-content a:hover { background-color: #f5f5f5; color: #4CAF50; }
+
+    /* 手機版 Menu 按鈕 (預設隱藏) */
+    .mobile-menu-btn {
+        display: none;
+        background: none;
+        border: none;
+        font-size: 28px;
+        color: #333;
+        cursor: pointer;
+        padding: 5px;
+    }
+
+    /* 手機版導航 (預設隱藏) */
+    .mobile-nav-overlay {
+        display: none;
+        position: absolute;
+        top: 60px;
+        left: 0;
+        width: 100%;
+        background: white;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        flex-direction: column;
+        border-top: 1px solid #eee;
+    }
+    
+    .mobile-nav-overlay a {
+        padding: 15px 20px;
+        border-bottom: 1px solid #f0f0f0;
+        text-decoration: none;
+        color: #333;
+        font-size: 16px;
+        display: block;
+    }
+    
+    .mobile-sub-item {
+        background-color: #fafafa;
+        padding-left: 40px !important; /* 縮排 */
+        color: #666 !important;
+        font-size: 15px !important;
+    }
+
+    /* 手機版 RWD */
+    @media (max-width: 768px) {
+        .desktop-nav { display: none; }
+        .mobile-menu-btn { display: block; }
+        
+        /* 當 menu 開啟時 */
+        .mobile-nav-overlay.open { display: flex; }
+    }
+
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+</style>
+
+<header class="site-header">
+    <!-- 左側 Logo -->
+    <a href="#" class="header-logo">
+        <span class="material-icons" style="font-size: 28px;">school</span>
+        Learn Studio
+    </a>
+
+    <!-- 右側導航 (電腦/平板) -->
+    <nav class="desktop-nav">
+        <div class="dropdown">
+            <span class="nav-item">英文資源 <span class="material-icons" style="font-size: 16px; vertical-align: middle;">arrow_drop_down</span></span>
+            <div class="dropdown-content">
+                <a href="https://learn-studio.github.io/vocab7000/">7000單字圖卡</a>
+                <!-- 可在此新增更多資源 -->
+            </div>
+        </div>
+        <a href="https://learn-studio.github.io/about/">關於作者</a>
+    </nav>
+
+    <!-- 右側漢堡選單 (手機) -->
+    <button class="mobile-menu-btn" onclick="toggleMobileMenu()">
+        <span class="material-icons">menu</span>
+    </button>
+
+    <!-- 手機版展開選單 -->
+    <div class="mobile-nav-overlay" id="mobileNav">
+        <div style="padding: 15px 20px; background: #f9f9f9; font-weight: bold; color: #555;">英文資源</div>
+        <a href="https://learn-studio.github.io/vocab7000/" class="mobile-sub-item">7000單字圖卡</a>
+        <a href="https://learn-studio.github.io/about/">關於作者</a>
+    </div>
+</header>
+
+<script>
+    function toggleMobileMenu() {
+        const menu = document.getElementById('mobileNav');
+        const btnIcon = document.querySelector('.mobile-menu-btn .material-icons');
+        
+        if (menu.classList.contains('open')) {
+            menu.classList.remove('open');
+            btnIcon.innerText = 'menu';
+        } else {
+            menu.classList.add('open');
+            btnIcon.innerText = 'close';
+        }
+    }
+    
+    // 點擊外部關閉選單
+    document.addEventListener('click', function(event) {
+        const menu = document.getElementById('mobileNav');
+        const btn = document.querySelector('.mobile-menu-btn');
+        const isClickInside = menu.contains(event.target) || btn.contains(event.target);
+        
+        if (!isClickInside && menu.classList.contains('open')) {
+            menu.classList.remove('open');
+            document.querySelector('.mobile-menu-btn .material-icons').innerText = 'menu';
+        }
+    });
+</script>
+<!-- ================= HEADER 結束 ================= -->
+
+    <!-- ================= 內容區 ================= -->
+    <div class="container">
+        
+        <section class="intro-section">
+            <h1>關於作者</h1>
+            <div class="bio-text">
+                Hi, 我是 Betty C.<br>
+                現任職於新創公司的 UI/UX 設計師，熱衷於學習新事物。<br>
+                喜歡透過設計解決真實問題，讓產品不只好看，更要好用。
+            </div>
+            <div class="contact-info">
+                📧 歡迎合作：bochen722@gmail.com
+            </div>
+        </section>
+
+        <!-- 互動區 -->
+        <div class="interactive-area">
+            
+            <!-- 左邊：像素小女孩 (使用 SVG 繪製) -->
+            <div class="pixel-avatar-container">
+                <svg class="pixel-svg" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+                    <!-- 定義顏色 -->
+                    <defs>
+                        <style>
+                            .skin { fill: #FFDAB9; } /* 皮膚色 */
+                            .hair { fill: #6D4C41; } /* 髮色 */
+                            .undies { fill: #FFF; opacity: 0.8; } /* 內襯 */
+                            .glasses-col { fill: #333; }
+                            .hat-col { fill: #3E4A61; }
+                            .robe-col { fill: #8DA399; }
+                            .heart-col { fill: #D4A5A5; }
+                            .shoes-col { fill: #D9C589; }
+                            .wand-stick { fill: #8D6E63; }
+                            .wand-star { fill: #FFD700; }
+                        </style>
+                    </defs>
+
+                    <!-- 1. 基礎身體 (Base) -->
+                    <g id="girl-base">
+                        <!-- 腿 -->
+                        <rect x="11" y="22" width="3" height="10" class="skin" />
+                        <rect x="18" y="22" width="3" height="10" class="skin" />
+                        <!-- 身體 -->
+                        <rect x="10" y="12" width="12" height="11" class="skin" />
+                        <!-- 手臂 -->
+                        <rect x="7" y="13" width="3" height="9" class="skin" /> <!-- 左手 -->
+                        <rect x="22" y="13" width="3" height="9" class="skin" /> <!-- 右手 -->
+                        <!-- 內襯裙 -->
+                        <rect x="11" y="13" width="10" height="9" class="undies" />
+                        <!-- 頭 -->
+                        <rect x="10" y="4" width="12" height="10" class="skin" />
+                        <!-- 頭髮 (瀏海與兩側) -->
+                        <rect x="9" y="3" width="14" height="4" class="hair" />
+                        <rect x="9" y="3" width="2" height="10" class="hair" />
+                        <rect x="21" y="3" width="2" height="10" class="hair" />
+                        <!-- 眼睛 -->
+                        <rect x="12" y="8" width="2" height="2" fill="#555" />
+                        <rect x="18" y="8" width="2" height="2" fill="#555" />
+                        <!-- 嘴巴 -->
+                        <rect x="14" y="12" width="4" height="1" fill="#D4A5A5" />
+                    </g>
+
+                    <!-- 2. 裝備層 (預設隱藏) -->
+                    
+                    <!-- 終身學習：法袍 (覆蓋身體) -->
+                    <g id="layer-robe" class="equipment-layer">
+                        <rect x="10" y="13" width="12" height="14" class="robe-col" />
+                        <rect x="6" y="13" width="4" height="8" class="robe-col" /> <!-- 袖子 -->
+                        <rect x="22" y="13" width="4" height="8" class="robe-col" /> <!-- 袖子 -->
+                        <rect x="13" y="13" width="6" height="14" fill="#A6B9B0" /> <!-- 袍子中間淺色 -->
+                    </g>
+
+                    <!-- 溝通力：漂亮鞋子 -->
+                    <g id="layer-shoes" class="equipment-layer">
+                        <rect x="11" y="29" width="3" height="3" class="shoes-col" />
+                        <rect x="18" y="29" width="3" height="3" class="shoes-col" />
+                        <rect x="11" y="28" width="1" height="1" class="shoes-col" />
+                        <rect x="20" y="28" width="1" height="1" class="shoes-col" />
+                    </g>
+
+                    <!-- UI設計：眼鏡 -->
+                    <g id="layer-glasses" class="equipment-layer">
+                        <rect x="11" y="8" width="4" height="2" class="glasses-col" opacity="0.7" />
+                        <rect x="17" y="8" width="4" height="2" class="glasses-col" opacity="0.7" />
+                        <rect x="15" y="9" width="2" height="1" class="glasses-col" />
+                    </g>
+
+                    <!-- 心理學：愛心項鍊 -->
+                    <g id="layer-necklace" class="equipment-layer">
+                        <rect x="15" y="15" width="2" height="2" class="heart-col" />
+                        <rect x="14" y="14" width="1" height="1" class="heart-col" />
+                        <rect x="17" y="14" width="1" height="1" class="heart-col" />
+                    </g>
+
+                    <!-- UX方法論：學者帽 -->
+                    <g id="layer-hat" class="equipment-layer">
+                        <rect x="8" y="2" width="16" height="2" class="hat-col" />
+                        <rect x="11" y="0" width="10" height="2" class="hat-col" />
+                        <rect x="23" y="2" width="1" height="6" fill="#FDD835" /> <!-- 流蘇 -->
+                    </g>
+
+                    <!-- 跨界整合：魔法棒 -->
+                    <g id="layer-wand" class="equipment-layer">
+                        <rect x="24" y="8" width="2" height="10" class="wand-stick" transform="rotate(15 25 13)" />
+                        <rect x="23" y="6" width="4" height="4" class="wand-star" transform="rotate(15 25 13)" />
+                    </g>
+
+                </svg>
+            </div>
+
+            <!-- 右邊：技能開關 -->
+            <div class="controls-container">
+                <button class="skill-btn" onclick="toggleEquip('glasses', this)" data-target="glasses">
+                    <span class="material-icons btn-icon">visibility</span>
+                    UI 設計
+                </button>
+                <button class="skill-btn" onclick="toggleEquip('hat', this)" data-target="hat">
+                    <span class="material-icons btn-icon">psychology</span>
+                    UX 方法論
+                </button>
+                <button class="skill-btn" onclick="toggleEquip('robe', this)" data-target="robe">
+                    <span class="material-icons btn-icon">auto_stories</span>
+                    終身學習
+                </button>
+                <button class="skill-btn" onclick="toggleEquip('necklace', this)" data-target="necklace">
+                    <span class="material-icons btn-icon">favorite</span>
+                    心理學
+                </button>
+                <button class="skill-btn" onclick="toggleEquip('shoes', this)" data-target="shoes">
+                    <span class="material-icons btn-icon">record_voice_over</span>
+                    溝通力
+                </button>
+                <button class="skill-btn" onclick="toggleEquip('wand', this)" data-target="wand">
+                    <span class="material-icons btn-icon">auto_fix_high</span>
+                    跨界整合
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // Header 手機版 Menu 邏輯
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobileNav');
+            const btnIcon = document.querySelector('.mobile-menu-btn .material-icons');
+            
+            if (menu.classList.contains('open')) {
+                menu.classList.remove('open');
+                btnIcon.innerText = 'menu';
+            } else {
+                menu.classList.add('open');
+                btnIcon.innerText = 'close';
+            }
+        }
+
+        // 點擊外部關閉 Menu
+        document.addEventListener('click', function(event) {
+            const menu = document.getElementById('mobileNav');
+            const btn = document.querySelector('.mobile-menu-btn');
+            const isClickInside = menu.contains(event.target) || btn.contains(event.target);
+            
+            if (!isClickInside && menu.classList.contains('open')) {
+                menu.classList.remove('open');
+                document.querySelector('.mobile-menu-btn .material-icons').innerText = 'menu';
+            }
+        });
+
+        // --- 換裝遊戲邏輯 ---
+        function toggleEquip(item, btnElement) {
+            // 1. 切換按鈕樣式
+            btnElement.classList.toggle('active');
+
+            // 2. 顯示/隱藏對應的 SVG Layer
+            const layerId = 'layer-' + item;
+            const layer = document.getElementById(layerId);
+            
+            if (layer) {
+                if (btnElement.classList.contains('active')) {
+                    layer.classList.add('visible');
+                } else {
+                    layer.classList.remove('visible');
+                }
+            }
+        }
+    </script>
+</body>
+</html>
