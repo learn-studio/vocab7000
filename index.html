@@ -15,7 +15,6 @@
 
     <style>
         :root {
-            /* 配色系統 */
             --bg-body: #F3F6F9;
             --bg-card: #FFFFFF;
             --text-main: #1E293B;
@@ -31,18 +30,14 @@
             background-color: var(--bg-body);
             color: var(--text-main);
             margin: 0; padding: 0;
-            
-            /* 使用 dvh 解決手機網址列擋住問題 */
             height: 100vh;  
             height: 100dvh; 
-            
-            overflow: hidden; /* 禁止頁面捲動 */
+            overflow: hidden; 
             display: flex; 
             flex-direction: column; 
             align-items: center;
         }
 
-        /* Header 容器強制置頂且不壓縮 */
         #header-container {
             width: 100%;
             flex-shrink: 0; 
@@ -78,7 +73,6 @@
             flex-shrink: 0; 
         }
 
-        /* A-Z Bar */
         .filter-bar {
             width: 100%; display: flex; justify-content: flex-start; align-items: center; 
             overflow-x: auto; gap: 8px; padding: 0 20px; box-sizing: border-box; 
@@ -100,7 +94,6 @@
             box-shadow: 0 8px 16px -4px rgba(79, 70, 229, 0.4); transform: translateY(-2px);
         }
 
-        /* Level Bar */
         .level-bar {
             width: 100%; display: flex; justify-content: center; flex-wrap: wrap;
             gap: 8px; padding: 0 15px; box-sizing: border-box;
@@ -138,7 +131,6 @@
             cursor: pointer; 
             width: 100%;
             max-width: 340px; 
-            /* 預設允許長大 */
             flex: 1 1 auto;   
         }
         
@@ -160,13 +152,13 @@
         .card-front { z-index: 2; }
         
         .level-badge {
-            position: absolute; top: 20px; left: 20px; padding: 6px 12px; 
+            position: absolute; top: 16px; left: 16px; padding: 6px 12px; 
             border-radius: 12px; color: white; font-size: 0.75em; font-weight: 700; 
             letter-spacing: 0.5px; z-index: 10;
         }
 
         .card-action-btn { 
-            position: absolute; top: 20px; background: white; 
+            position: absolute; top: 16px; background: white; 
             border: 1px solid var(--border-light); width: 44px; height: 44px; 
             border-radius: 14px; cursor: pointer; display: flex; 
             align-items: center; justify-content: center; color: #64748B; 
@@ -177,8 +169,9 @@
             background: var(--primary-gradient); border-color: transparent; 
             color: white; box-shadow: 0 8px 20px rgba(99, 102, 241, 0.4); transform: scale(1.05); 
         }
-        .btn-audio { right: 20px; }
-        .btn-dict { right: 72px; }
+        
+        .btn-audio { right: 16px; }
+        .btn-dict { right: 68px; } 
         
         .card-img { 
             width: 100%; height: 48%; object-fit: cover; 
@@ -236,25 +229,27 @@
         }
         .error-msg { color: #EF4444; font-size: 0.9em; margin-top: 10px; text-align: center; }
 
-        /* ★★★ 手機版優化 (重要修改) ★★★ */
+        /* ★★★ 手機版優化 ★★★ */
         @media (max-width: 600px) {
             .pagination { bottom: 20px; width: 85%; }
             
             .card-container { 
-                /* ★關鍵：這裡要強制停止 flex grow，不然會被撐大 */
                 flex: 0 0 auto !important;
-                
-                /* 設定你想要的窄寬度 */
-                width: 70vw !important; 
-                max-width: 65vw !important;
-                
-                /* 設定變矮 */
+                width: 80vw !important; 
+                max-width: 80vw !important;
                 height: 45vh; 
             }
+            
             .filter-bar { padding-left: 15px; }
 
             .word-text { font-size: 1.7em; }
-            .card-img { height: 45%; }
+            .card-img { height: 55%; }
+
+            /* 手機版間距縮小為 8px */
+            .level-badge { top: 8px; left: 8px; }
+            .card-action-btn { top: 8px; }
+            .btn-audio { right: 8px; }
+            .btn-dict { right: 60px; } 
         }
     </style>
 </head>
@@ -563,6 +558,37 @@
             }
         }
 
+        // ★★★ 新增：滑動手勢偵測 (Swipe) ★★★
+        function initSwipeDetection() {
+            const container = document.getElementById('app');
+            let touchStartX = 0;
+            let touchStartY = 0;
+            let touchEndX = 0;
+            let touchEndY = 0;
+            const minSwipeDistance = 50; 
+
+            container.addEventListener('touchstart', function(e) {
+                touchStartX = e.changedTouches[0].screenX;
+                touchStartY = e.changedTouches[0].screenY;
+            }, {passive: true});
+
+            container.addEventListener('touchend', function(e) {
+                touchEndX = e.changedTouches[0].screenX;
+                touchEndY = e.changedTouches[0].screenY;
+                handleSwipe();
+            }, {passive: true});
+
+            function handleSwipe() {
+                const xDiff = touchEndX - touchStartX;
+                const yDiff = touchEndY - touchStartY;
+
+                if (Math.abs(xDiff) > Math.abs(yDiff) && Math.abs(xDiff) > minSwipeDistance) {
+                    if (xDiff > 0) changePage(-1);
+                    else changePage(1);
+                }
+            }
+        }
+
         fetch('header.html').then(r => r.text()).then(d => {
             document.getElementById('header-container').innerHTML = d;
             window.toggleMobileMenu = function() {
@@ -570,6 +596,8 @@
                 m.classList.toggle('open');
             };
         });
+
+        initSwipeDetection();
     </script>
 </body>
 </html>
