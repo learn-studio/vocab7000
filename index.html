@@ -67,20 +67,35 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            /* ★修改 3：增加上方 padding 防止被切到 */
-            padding: 25px 0 15px 0;
+            /* 調整 padding */
+            padding: 10px 0;
             flex-shrink: 0;
         }
 
         /* A-Z 篩選列 */
         .filter-bar {
             width: 100%;
-            display: flex; justify-content: flex-start; align-items: center;
-            overflow-x: auto; gap: 8px; padding: 0 20px 10px 20px;
-            box-sizing: border-box; scrollbar-width: none;
+            display: flex; 
+            justify-content: flex-start; 
+            align-items: center; /* 讓按鈕垂直置中 */
+            overflow-x: auto; 
+            gap: 8px; 
+            padding: 0 20px;
+            box-sizing: border-box; 
+            scrollbar-width: none;
+            
+            /* ★修改 1：設定手機版最小高度，確保按鈕浮起來不會被切到 */
+            min-height: 60px; 
         }
         .filter-bar::-webkit-scrollbar { display: none; }
-        @media (min-width: 850px) { .filter-bar { justify-content: center; } }
+        
+        /* ★修改 2：電腦版給予更多空間 */
+        @media (min-width: 850px) { 
+            .filter-bar { 
+                justify-content: center; 
+                min-height: 80px; /* 電腦版高度更高 */
+            } 
+        }
         
         .filter-btn {
             flex: 0 0 auto; 
@@ -189,9 +204,7 @@
         
         .card-img { 
             width: 100%; 
-            /* ★修改 1：固定長寬比為 4:3 (這是常用的照片比例)，並改為 height: auto */
-            aspect-ratio: 4/3;
-            height: auto;
+            height: 48%;
             object-fit: cover; 
             margin-bottom: 0; 
             border-bottom: 1px solid #F1F5F9; 
@@ -223,7 +236,7 @@
             background: white; transform: rotateY(180deg); padding: 30px; 
             text-align: center; 
             border: 2px solid #6366F1;
-            /* ★修改 2：背面內容垂直置中 */
+            /* 背面內容垂直置中 */
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -273,7 +286,9 @@
                 bottom: 20px; width: 85%;
             }
             .card-container {
-                width: 320px !important; max-width: 90vw; 
+                /* 手機版寬度設定為 75% */
+                width: 75vw !important; 
+                max-width: 350px; 
                 height: 55vh; 
             }
             .filter-bar { padding-left: 15px; }
@@ -551,7 +566,7 @@
                         <div class="card-face card-front">
                             <div class="level-badge" style="background:${getLevelColor(item.level)}">${item.level}</div>
                             
-                            <!-- ★修改 4：確認劍橋字典連結格式正確 -->
+                            <!-- 劍橋字典連結 -->
                             <a href="https://dictionary.cambridge.org/dictionary/english-chinese-traditional/${item.word.toLowerCase()}" 
                                target="_blank" 
                                class="card-action-btn btn-dict"
