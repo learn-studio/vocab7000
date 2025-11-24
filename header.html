@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Site Header</title>
     <!-- 引入 Google Material Icons -->
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
@@ -17,12 +17,14 @@
 
         /* --- Header CSS --- */
         .site-header {
-            /* ★★★ 修改重點：改為固定定位 ★★★ */
-            position: fixed; 
+            /* ★★★ 修改重點 1：改用 sticky (黏性定位) ★★★ */
+            /* 這樣它就是網頁內容的一部分，不會因為網址列伸縮而跑位 */
+            position: sticky; 
             top: 0;
             left: 0;
+            
             width: 100%;
-            height: 60px; /* 這裡的高度要跟下方的 spacer 一樣 */
+            height: 60px;
             
             background-color: #ffffff;
             box-shadow: 0 2px 4px rgba(0,0,0,0.08);
@@ -31,18 +33,18 @@
             justify-content: space-between;
             padding: 0 20px;
             box-sizing: border-box;
-            z-index: 1001; /* 確保在最上層 (比 main page 的 1000 高) */
-            flex-shrink: 0;
+            
+            /* 確保層級最高 */
+            z-index: 1001; 
+            
+            /* 防止被壓縮 */
+            flex-shrink: 0; 
+            
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
 
-        /* ★★★ 新增：佔位區塊 ★★★ 
-           因為 Header 懸浮了，需要一個同樣高度的空盒子把內容往下推
-        */
-        .header-spacer {
-            width: 100%;
-            height: 60px; /* 必須跟 header 高度一致 */
-            flex-shrink: 0;
+            /* ★★★ 修改重點 2：避開 iPhone 瀏海/動態島 ★★★ */
+            padding-top: env(safe-area-inset-top);
+            height: calc(60px + env(safe-area-inset-top));
         }
 
         /* 
@@ -90,7 +92,7 @@
         /* 下拉選單容器 */
         .dropdown {
             position: relative;
-            height: 60px;
+            height: 100%; /* 跟隨 header 高度 */
             display: flex;
             align-items: center;
         }
@@ -99,14 +101,14 @@
         .dropdown-content {
             display: none;
             position: absolute;
-            top: 60px;
+            top: 100%; /* 自動接在容器下方 */
             right: -10px;
             background-color: #fff;
             min-width: 180px;
             box-shadow: 0 8px 16px rgba(0,0,0,0.15);
             border-radius: 0 0 8px 8px;
             overflow: hidden;
-            z-index: 1002; /* 比 header 再高一點 */
+            z-index: 1002;
         }
 
         .dropdown:hover .dropdown-content {
@@ -141,8 +143,8 @@
         /* 手機版導航 */
         .mobile-nav-overlay {
             display: none;
-            position: fixed; /* 改為 fixed 確保佔滿全螢幕且不跑版 */
-            top: 60px;       /* 剛好接在 Header 下方 */
+            position: fixed; 
+            top: 60px; /* 這裡需要配合 Header 高度 */
             left: 0;
             width: 100%;
             background: white;
@@ -150,6 +152,9 @@
             flex-direction: column;
             border-top: 1px solid #eee;
             z-index: 1000;
+            
+            /* 手機版選單也要避開狀態列偏移 */
+            top: calc(60px + env(safe-area-inset-top));
         }
         
         .mobile-nav-overlay a, .mobile-nav-overlay div {
@@ -217,8 +222,8 @@
         </div>
     </header>
 
-    <!-- ★★★ 關鍵：這是一個隱形的 Spacer，用來佔據高度，避免內容被 Fixed Header 擋住 ★★★ -->
-    <div class="header-spacer"></div>
+    <!-- ★★★ 修改重點 3：移除 .header-spacer ★★★ -->
+    <!-- 因為 sticky 元素本身就會佔據空間，不需要額外墊高 -->
 
     <script>
         function toggleMobileMenu() {
@@ -238,7 +243,6 @@
             const menu = document.getElementById('mobileNav');
             const btn = document.querySelector('.mobile-menu-btn');
             
-            // 防止 DOM 還沒載入時報錯
             if (!menu || !btn) return;
 
             const isClickInside = menu.contains(event.target) || btn.contains(event.target);
