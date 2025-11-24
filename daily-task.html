@@ -301,29 +301,37 @@
     </div>
 
     <script>
-        const defaultData = {
-            core: "終身學習",
-            sectors: [
-                { title: "身心靈", tasks: ["規律運動", "冥想正念", "睡眠充足", "成長型思維", "自信日記", "社交斷捨離", "情緒管理", "健康飲食"], done: Array(8).fill(false) },
-                { title: "領導管理", tasks: ["專案工具", "OKR 設定", "敏捷開發", "向上管理", "衝突談判", "決策框架", "導師計畫", "專案復盤"], done: Array(8).fill(false) },
-                { title: "行銷數據", tasks: ["GA4 分析", "SQL 基礎", "A/B Testing", "數據視覺化", "轉換率優化", "用戶指標", "競品分析", "Growth Hacking"], done: Array(8).fill(false) },
-                { title: "心理學 HCI", tasks: ["認知心理學", "Material Design", "無障礙設計", "易用性測試", "使用者訪談", "完形心理學", "行為經濟學", "資訊架構"], done: Array(8).fill(false) },
-                { title: "Coding", tasks: ["HTML/CSS", "JS 基礎", "API 串接", "Git 版控", "Flutter 概念", "AI 寫 Code", "系統架構", "工程師溝通"], done: Array(8).fill(false) },
-                { title: "跨領域", tasks: ["商業模式", "AI 趨勢", "財務損益", "故事力", "設計思考", "科技新聞", "跨界專案", "哲學人文"], done: Array(8).fill(false) },
-                { title: "語言表達", tasks: ["英文簡報", "STAR 回答", "模擬面試", "英文寫作", "LinkedIn", "電梯簡報", "Podcast", "英文會議"], done: Array(8).fill(false) },
-                { title: "UI/UX 設計", tasks: ["Figma 進階", "Design System", "Hi-Fi 原型", "微互動", "排版格線", "響應式設計", "App Critique", "開發交付"], done: Array(8).fill(false) }
-            ],
-            dailyQuests: [], lastLoginDate: ""
-        };
+        // 1. 修改 defaultData，在每個 sector 加入 score: 0
+const defaultData = {
+    core: "終身學習",
+    sectors: [
+        { title: "身心靈", tasks: ["規律運動", "...", "健康飲食"], done: Array(8).fill(false), score: 0 },
+        { title: "領導管理", tasks: ["專案工具", "...", "專案復盤"], done: Array(8).fill(false), score: 0 },
+        { title: "行銷數據", tasks: ["GA4 分析", "...", "Growth Hacking"], done: Array(8).fill(false), score: 0 },
+        { title: "心理學 HCI", tasks: ["認知心理學", "...", "資訊架構"], done: Array(8).fill(false), score: 0 },
+        { title: "Coding", tasks: ["HTML/CSS", "...", "工程師溝通"], done: Array(8).fill(false), score: 0 },
+        { title: "跨領域", tasks: ["商業模式", "...", "哲學人文"], done: Array(8).fill(false), score: 0 },
+        { title: "語言表達", tasks: ["英文簡報", "...", "英文會議"], done: Array(8).fill(false), score: 0 },
+        { title: "UI/UX 設計", tasks: ["Figma 進階", "...", "開發交付"], done: Array(8).fill(false), score: 0 }
+    ],
+    dailyQuests: [], lastLoginDate: ""
+};
 
         let mandala = JSON.parse(JSON.stringify(defaultData));
         let currentView = null; let isEditing = false; let chartInstance = null; let tempMission = null;
 
-        function init() {
-            const saved = localStorage.getItem('mandala_lite_v4');
-            if (saved) mandala = JSON.parse(saved);
-            checkDailyReset(); calculateXP(); renderGrid(); renderQuestList();
-        }
+        // 2. 修改 init 函式，增加舊資料的補丁 (Patch)
+function init() {
+    const saved = localStorage.getItem('mandala_lite_v4');
+    if (saved) {
+        mandala = JSON.parse(saved);
+        // ★★★ 新增這段：檢查舊存檔有沒有 score，沒有的話補上 0
+        mandala.sectors.forEach(s => {
+            if (s.score === undefined) s.score = 0;
+        });
+    }
+    checkDailyReset(); calculateXP(); renderGrid(); renderQuestList();
+}
         function saveData() { localStorage.setItem('mandala_lite_v4', JSON.stringify(mandala)); calculateXP(); }
         function checkDailyReset() {
             const today = new Date().toDateString();
@@ -478,10 +486,24 @@
                     <div class="check-circle"><span class="material-icons" style="font-size:16px;">check</span></div>
                 `;
                 item.onclick = () => {
-                    mandala.sectors[q.sectorIdx].done[q.taskIdx] = !mandala.sectors[q.sectorIdx].done[q.taskIdx];
-                    saveData(); renderQuestList(); renderGrid();
-                    if (mandala.sectors[q.sectorIdx].done[q.taskIdx] && navigator.vibrate) navigator.vibrate(50);
-                };
+    const s = mandala.sectors[q.sectorIdx];
+    const currentState = s.done[q.taskIdx];
+    
+    // 1. 切換狀態
+    s.done[q.taskIdx] = !currentState;
+
+    // 2. ★★★ 新增：累積次數邏輯 ★★★
+    if (s.done[q.taskIdx]) {
+        // 如果變成「完成」，分數 +1
+        s.score = (s.score || 0) + 1;
+    } else {
+        // 如果變成「未完成」(取消打勾)，分數 -1 (避免誤觸無法反悔)
+        if (s.score > 0) s.score--;
+    }
+
+    saveData(); renderQuestList(); renderGrid();
+    if (s.done[q.taskIdx] && navigator.vibrate) navigator.vibrate(50);
+};
                 listEl.appendChild(item);
             });
         }
@@ -491,23 +513,27 @@
         function renderChart() {
     const ctx = document.getElementById('radarChart').getContext('2d');
     const labels = mandala.sectors.map(s => s.title);
-    const dataValues = mandala.sectors.map(s => s.done.filter(Boolean).length); // 完成的數量
+    
+    // ★ 修改資料來源：改成讀取 score (累積次數)
+    const dataValues = mandala.sectors.map(s => s.score || 0); 
 
-    // 1. 繪製雷達圖
+    // 找出目前最大值，讓雷達圖比例好看一點 (如果最大值小於 5，就預設 5，避免圖太扁)
+    const maxVal = Math.max(...dataValues, 5);
+
     if (chartInstance) chartInstance.destroy();
     chartInstance = new Chart(ctx, {
         type: 'radar',
         data: {
             labels: labels,
             datasets: [{
-                label: '完成數',
+                label: '累積經驗值', // 標籤改名
                 data: dataValues,
                 backgroundColor: 'rgba(16, 185, 129, 0.2)',
                 borderColor: '#10b981',
                 pointBackgroundColor: '#fff',
                 pointBorderColor: '#10b981',
-                pointRadius: 4,     // 把點點稍微變大一點
-                pointHitRadius: 15, // ★ 關鍵：增加點擊的感應範圍
+                pointRadius: 4,
+                pointHitRadius: 15,
                 borderWidth: 2
             }]
         },
@@ -517,7 +543,8 @@
             scales: {
                 r: {
                     min: 0,
-                    max: 8,
+                    // ★ 移除固定的 max: 8，改用 suggestMax 讓它自動長大
+                    suggestedMax: maxVal + 1, 
                     ticks: { display: false },
                     pointLabels: {
                         font: { size: 12, family: "'Noto Sans TC'" },
@@ -530,22 +557,18 @@
                 tooltip: {
                     displayColors: false,
                     callbacks: {
+                        // ★ Tooltip 只顯示數字，不顯示 /8
                         label: function(context) {
-                            return ` 完成: ${context.raw} / 8`;
+                            return ` 累積: ${context.raw}`;
                         }
                     }
                 }
             },
-            // ★★★ 關鍵優化：讓點擊/觸摸更容易觸發 ★★★
-            interaction: {
-                mode: 'nearest', // 找最近的
-                axis: 'r',       // 徑向軸
-                intersect: false // 不需要精準點到線也能觸發
-            }
+            interaction: { mode: 'nearest', axis: 'r', intersect: false }
         }
     });
 
-    // 2. 產生下方列表 (讓手機板更容易閱讀)
+    // 更新下方列表 (也移除 /8)
     const listEl = document.getElementById('statsList');
     listEl.innerHTML = '';
     
@@ -553,13 +576,13 @@
         const count = dataValues[i];
         const row = document.createElement('div');
         row.className = 'stat-row';
-        // 點擊列表也可以觸發震動或效果(選用)
         row.innerHTML = `
             <div class="stat-name">
                 <div class="stat-dot" style="opacity: ${count > 0 ? 1 : 0.3}"></div>
                 ${s.title}
             </div>
-            <div class="stat-val"><span>${count}</span>/8</div>
+            <!-- ★ 這裡只顯示單一數字 -->
+            <div class="stat-val"><span>${count}</span></div>
         `;
         listEl.appendChild(row);
     });
