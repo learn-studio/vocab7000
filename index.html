@@ -30,17 +30,25 @@
             font-family: 'Outfit', sans-serif;
             background-color: var(--bg-body);
             color: var(--text-main);
-            margin: 0; padding: 0; height: 100vh; overflow: hidden;
-            display: flex; flex-direction: column; align-items: center;
+            margin: 0; padding: 0;
+            
+            /* ★★★ 修改 1：使用 dvh 解決手機網址列擋住問題 ★★★ */
+            height: 100vh;  /* 舊瀏覽器備用 */
+            height: 100dvh; /* 關鍵：動態視窗高度，會自動扣除網址列高度 */
+            
+            overflow: hidden; /* 禁止頁面捲動 */
+            display: flex; 
+            flex-direction: column; 
+            align-items: center;
         }
 
-        /* ★★★ 新增：Header 容器設定 ★★★ */
+        /* ★★★ 修改 2：Header 容器強制置頂且不壓縮 ★★★ */
         #header-container {
             width: 100%;
-            flex-shrink: 0; /* 關鍵：禁止被壓縮，防止被推上去看不見 */
-            z-index: 1001;  /* 確保層級比篩選器高 */
-            position: relative;
-            background-color: var(--bg-body); /* 避免透明導致重疊 */
+            flex-shrink: 0; /* 禁止被 flex 壓縮 */
+            z-index: 1001;  /* 確保在最上層 */
+            position: relative; /* 讓它參與 Flex 排列 */
+            background-color: var(--bg-body);
         }
 
         /* --- Loading --- */
@@ -67,7 +75,7 @@
             width: 100%; z-index: 100;
             display: flex; flex-direction: column; align-items: center;
             padding: 10px 0; 
-            flex-shrink: 0; /* 篩選器也不要被壓縮 */
+            flex-shrink: 0; /* 禁止壓縮 */
         }
 
         /* A-Z Bar */
@@ -114,11 +122,11 @@
             display: flex; 
             justify-content: center; 
             align-items: center; 
-            gap: 20px; /* 卡片間距 */
+            gap: 20px; 
             padding: 0 20px; 
             box-sizing: border-box; 
             padding-bottom: 100px; 
-            overflow: hidden; /* 防止內容溢出 */
+            overflow: hidden; 
         }
 
         /* --- 卡片容器 --- */
@@ -128,7 +136,6 @@
             min-height: 380px; 
             perspective: 1000px; 
             cursor: pointer; 
-
             width: 100%;
             max-width: 340px; 
             flex: 1 1 auto;   
@@ -231,14 +238,14 @@
         /* 手機版優化 */
         @media (max-width: 600px) {
             .pagination { bottom: 20px; width: 85%; }
-            .card-container { width: 75vw !important; height: 55vh; } /* 確保手機版寬度 */
+            .card-container { width: 75vw !important; height: 55vh; }
             .filter-bar { padding-left: 15px; }
         }
     </style>
 </head>
 <body>
 
-<!-- Header 容器 (CSS 中已防止被壓縮) -->
+<!-- Header 容器 -->
 <div id="header-container"></div>
     
     <div id="loading-overlay">
