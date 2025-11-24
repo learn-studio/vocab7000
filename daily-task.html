@@ -303,18 +303,59 @@
     <script>
         // 1. 修改 defaultData，在每個 sector 加入 score: 0
 const defaultData = {
-    core: "終身學習",
+    core: "理想自我",
     sectors: [
-        { title: "身心靈", tasks: ["規律運動", "...", "健康飲食"], done: Array(8).fill(false), score: 0 },
-        { title: "領導管理", tasks: ["專案工具", "...", "專案復盤"], done: Array(8).fill(false), score: 0 },
-        { title: "行銷數據", tasks: ["GA4 分析", "...", "Growth Hacking"], done: Array(8).fill(false), score: 0 },
-        { title: "心理學 HCI", tasks: ["認知心理學", "...", "資訊架構"], done: Array(8).fill(false), score: 0 },
-        { title: "Coding", tasks: ["HTML/CSS", "...", "工程師溝通"], done: Array(8).fill(false), score: 0 },
-        { title: "跨領域", tasks: ["商業模式", "...", "哲學人文"], done: Array(8).fill(false), score: 0 },
-        { title: "語言表達", tasks: ["英文簡報", "...", "英文會議"], done: Array(8).fill(false), score: 0 },
-        { title: "UI/UX 設計", tasks: ["Figma 進階", "...", "開發交付"], done: Array(8).fill(false), score: 0 }
+        { 
+            title: "身心健康", 
+            tasks: ["喝水2000cc", "睡滿7小時", "有氧運動30分鐘", "冥想正念", "吃蔬果", "不喝含糖飲", "伸展拉筋", "曬太陽10分鐘"], 
+            done: Array(8).fill(false), 
+            score: 0 
+        },
+        { 
+            title: "財務理財", 
+            tasks: ["每日記帳", "不衝動購物", "檢視預算", "閱讀財經訊", "存下零錢", "整理發票", "研究投資", "自己煮飯"], 
+            done: Array(8).fill(false), 
+            score: 0 
+        },
+        { 
+            title: "人際社群", 
+            tasks: ["關心家人", "聯絡老友", "認識新朋友", "幫助同事", "主動打招呼", "真誠感謝", "傾聽不插話", "斷捨離關係"], 
+            done: Array(8).fill(false), 
+            score: 0 
+        },
+        { 
+            title: "工作效率", 
+            tasks: ["列待辦清單", "番茄鐘工作", "整理桌面", "複盤今日", "設定目標", "學習新工具", "工作成長日記", "零碎時間管理"], 
+            done: Array(8).fill(false), 
+            score: 0 
+        },
+        { 
+            title: "語言能力", 
+            tasks: ["背5個單字", "看外語影片30分鐘", "跟讀練習30分鐘", "聽Podcast30分鐘", "寫外語日記", "閱讀英文新聞30分鐘", "", "開口說外語20分鐘"], 
+            done: Array(8).fill(false), 
+            score: 0 
+        },
+        { 
+            title: "生活品味", 
+            tasks: ["整理房間", "看部好電影", "聽好音樂", "嘗試新事物", "斷網一小時", "享受美食", "親近自然", "培養興趣"], 
+            done: Array(8).fill(false), 
+            score: 0 
+        },
+        { 
+            title: "表達溝通", 
+            tasks: ["寫作輸出", "練習簡報", "肢體語言", "清晰表達", "講個故事", "眼神交流", "整理邏輯", "不說口頭禪"], 
+            done: Array(8).fill(false), 
+            score: 0 
+        },
+        { 
+            title: "思考維度", 
+            tasks: ["感恩日記", "反思錯誤", "關注時事", "邏輯思考", "換位思考", "觀察生活", "記錄靈感", "規劃未來"], 
+            done: Array(8).fill(false), 
+            score: 0 
+        }
     ],
-    dailyQuests: [], lastLoginDate: ""
+    dailyQuests: [], 
+    lastLoginDate: ""
 };
 
         let mandala = JSON.parse(JSON.stringify(defaultData));
