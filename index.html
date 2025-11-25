@@ -21,47 +21,52 @@
 
     <style>
         :root {
-            --bg-body: #F0F4F8; /* 更清爽的淺灰藍底 */
-            --bg-card: rgba(255, 255, 255, 0.65); /* 玻璃擬態主色 */
+            --bg-body: #F0F4F8;
+            --bg-card: rgba(255, 255, 255, 0.85); /* 提高不透明度 */
             --text-main: #1E293B;
             --text-sub: #64748B;
-            --border-light: rgba(255, 255, 255, 0.6);
+            --border-light: rgba(255, 255, 255, 0.8);
             --primary-gradient: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
-            /* 玻璃陰影 */
-            --shadow-glass: 
-                0 4px 30px rgba(0, 0, 0, 0.1),
-                inset 0 0 20px rgba(255, 255, 255, 0.5);
+            --shadow-glass: 0 8px 32px rgba(0, 0, 0, 0.1);
             --shadow-float: 0 10px 30px rgba(0, 0, 0, 0.08);
         }
 
+        /* --- 1. 解決 Header 被擋住的問題：Flex 佈局 --- */
         body {
             font-family: 'Outfit', sans-serif;
             background-color: var(--bg-body);
             color: var(--text-main);
             margin: 0; padding: 0;
+            /* 使用 dvh 確保在手機瀏覽器(含網址列)也能滿版 */
             height: 100vh; height: 100dvh; 
             overflow: hidden; 
-            display: flex; flex-direction: column; align-items: center;
-            position: relative;
+            display: flex; 
+            flex-direction: column; /* 垂直排列 */
         }
 
-        /* --- 背景裝飾動畫 (為了凸顯玻璃質感) --- */
+        /* 讓 Header 與 Filter 不會被壓縮 */
+        #header-container, .filter-container {
+            flex-shrink: 0; 
+            position: relative;
+            z-index: 100;
+        }
+
+        /* 背景裝飾 */
         .bg-blob {
             position: absolute; border-radius: 50%; filter: blur(60px); opacity: 0.6; z-index: -1;
             animation: floatBlob 10s infinite alternate ease-in-out;
+            pointer-events: none;
         }
         .blob-1 { width: 300px; height: 300px; background: #C7D2FE; top: 10%; left: -50px; }
         .blob-2 { width: 400px; height: 400px; background: #E9D5FF; bottom: -50px; right: -100px; animation-delay: -5s; }
         @keyframes floatBlob { from { transform: translate(0, 0); } to { transform: translate(30px, 50px); } }
 
-        #header-container { width: 100%; flex-shrink: 0; z-index: 1001; position: relative; background: transparent; }
-
         /* --- Loading --- */
         #loading-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(255,255,255,0.9); backdrop-filter: blur(10px);
+            background: rgba(255,255,255,0.95); z-index: 9999;
             display: flex; flex-direction: column; justify-content: center; align-items: center;
-            z-index: 9999; transition: opacity 0.5s;
+            transition: opacity 0.5s;
         }
         .spinner {
             width: 40px; height: 40px; border: 4px solid #E2E8F0; 
@@ -70,128 +75,73 @@
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* --- Filter Bar (Glass Style) --- */
+        /* --- Filter Bar --- */
         .filter-container {
-            background: rgba(255, 255, 255, 0.4);
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(10px);
             border-bottom: 1px solid rgba(255,255,255,0.5);
-            box-shadow: 0 4px 20px rgba(0,0,0,0.02);
-            width: 100%; z-index: 100;
-            display: flex; flex-direction: column; align-items: center;
-            padding: 10px 0; flex-shrink: 0; 
+            padding: 10px 0;
         }
-
         .filter-bar {
-            width: 100%; display: flex; justify-content: flex-start; align-items: center; 
-            overflow-x: auto; gap: 8px; padding: 0 20px; box-sizing: border-box; 
-            scrollbar-width: none; min-height: 60px; 
+            display: flex; justify-content: flex-start; align-items: center; 
+            overflow-x: auto; gap: 8px; padding: 0 20px; 
+            scrollbar-width: none; min-height: 50px;
         }
         .filter-bar::-webkit-scrollbar { display: none; }
-        @media (min-width: 850px) { .filter-bar { justify-content: center; min-height: 80px; } }
+        @media (min-width: 850px) { .filter-bar { justify-content: center; } }
         
         .filter-btn {
-            flex: 0 0 auto; background: rgba(255,255,255,0.6); color: var(--text-sub);
-            border: 1px solid var(--border-light); width: 36px; height: 36px; 
-            border-radius: 10px; cursor: pointer; font-weight: 600; 
-            font-family: 'Outfit', sans-serif; display: flex; align-items: center; 
-            justify-content: center; font-size: 14px; transition: all 0.3s;
+            flex: 0 0 auto; background: rgba(255,255,255,0.8); color: var(--text-sub);
+            border: 1px solid var(--border-light); width: 32px; height: 32px; 
+            border-radius: 8px; cursor: pointer; font-weight: 600; 
+            display: flex; align-items: center; justify-content: center; font-size: 13px; 
+            transition: all 0.2s;
         }
-        .filter-btn:hover { border-color: #6366F1; color: #6366F1; transform: translateY(-2px); background: white; }
         .filter-btn.active { 
             background: var(--primary-gradient); color: white; border-color: transparent;
-            box-shadow: 0 5px 15px rgba(79, 70, 229, 0.3); transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(79, 70, 229, 0.3); transform: translateY(-1px);
         }
 
         .level-bar {
-            width: 100%; display: flex; justify-content: center; flex-wrap: wrap;
-            gap: 8px; padding: 0 15px; box-sizing: border-box;
+            display: flex; justify-content: center; flex-wrap: wrap; gap: 6px; padding: 5px 15px;
         }
         .level-btn {
             background: transparent; border: 1px solid transparent; color: var(--text-sub);
-            padding: 5px 14px; border-radius: 20px; cursor: pointer; font-size: 13px; 
-            font-weight: 500; font-family: 'Outfit', sans-serif; transition: all 0.2s;
+            padding: 4px 12px; border-radius: 15px; cursor: pointer; font-size: 12px; 
+            font-weight: 500; transition: all 0.2s;
         }
-        .level-btn:hover { background: rgba(255,255,255,0.5); color: var(--text-main); }
         .level-btn.active { 
-            background: white; color: #4F46E5; border-color: #E2E8F0;
-            font-weight: 700; box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            background: white; color: #4F46E5; border-color: #E2E8F0; font-weight: 700; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
         }
 
-        /* --- Main App Area --- */
+        /* --- Main App Area (卡片區) --- */
         #app { 
-            flex: 1; width: 100%; 
+            flex: 1; /* 佔滿剩下空間 */
+            width: 100%; 
             display: flex; justify-content: center; align-items: center; 
-            gap: 20px; padding: 0 20px; box-sizing: border-box; 
-            padding-bottom: 100px; overflow: hidden; 
-        }
-
-        /* --- 卡片容器 & 堆疊效果 --- */
-        .card-container { 
-            height: 52vh; max-height: 500px; min-height: 380px; 
-            perspective: 1000px; cursor: pointer; 
-            width: 100%; max-width: 340px; flex: 1 1 auto;
+            gap: 20px; padding: 20px; box-sizing: border-box; 
             position: relative;
-            transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.5s;
+            /* 避免卡片被遮擋 */
+            z-index: 1;
         }
 
-        /* 堆疊效果 (Stack Effect) - 使用偽元素製作底部兩層 */
-        .card-container::before, 
-        .card-container::after {
-            content: ''; position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(255, 255, 255, 0.4);
-            border: 1px solid rgba(255,255,255,0.3);
-            border-radius: 24px;
-            z-index: -1;
-            transition: all 0.3s ease;
-        }
-        
-        /* 第二層 */
-        .card-container::after {
-            transform: translateY(12px) scale(0.95);
-            opacity: 0.7;
-            z-index: -1;
-        }
-        /* 第三層 */
-        .card-container::before {
-            transform: translateY(24px) scale(0.9);
-            opacity: 0.4;
-            z-index: -2;
-        }
-
-        /* --- 飛行動畫 Keyframes --- */
-        .fly-out-left {
-            animation: flyOutLeft 0.6s forwards cubic-bezier(0.55, 0.085, 0.68, 0.53);
-            pointer-events: none; /* 防止動畫中誤觸 */
-        }
-        .fly-out-right {
-            animation: flyOutRight 0.6s forwards cubic-bezier(0.55, 0.085, 0.68, 0.53);
-            pointer-events: none;
-        }
-        .fly-in {
-            animation: flyIn 0.6s forwards cubic-bezier(0.25, 0.46, 0.45, 0.94);
-        }
-
-        @keyframes flyOutLeft {
-            0% { transform: translate(0, 0) rotate(0); opacity: 1; }
-            100% { transform: translate(-120%, -50%) rotate(-20deg); opacity: 0; }
-        }
-        @keyframes flyOutRight {
-            0% { transform: translate(0, 0) rotate(0); opacity: 1; }
-            100% { transform: translate(120%, -50%) rotate(20deg); opacity: 0; }
-        }
-        @keyframes flyIn {
-            0% { transform: translateY(50px) scale(0.9); opacity: 0; }
-            100% { transform: translateY(0) scale(1); opacity: 1; }
+        /* --- 卡片容器 --- */
+        .card-container { 
+            /* 電腦版預設大小 */
+            width: 320px; height: 480px;
+            perspective: 1000px; 
+            position: relative;
+            /* 電腦版不需要拖曳，使用預設行為 */
         }
 
         /* --- Card Style (Glass) --- */
         .card { 
             width: 100%; height: 100%; position: relative; 
             transform-style: preserve-3d; 
-            transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+            transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1); /* 翻轉動畫 */
             border-radius: 24px; 
+            cursor: pointer;
         }
         .card.flipped { transform: rotateY(180deg); }
         
@@ -199,115 +149,115 @@
             position: absolute; width: 100%; height: 100%; backface-visibility: hidden; 
             border-radius: 24px; display: flex; flex-direction: column; 
             align-items: center; justify-content: center; 
-            
-            /* Glassmorphism 核心 */
             background: var(--bg-card); 
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
+            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
             border: 1px solid var(--border-light);
             box-shadow: var(--shadow-glass);
-            
             box-sizing: border-box; overflow: hidden; 
+            /* 防止選取文字干擾拖曳 */
+            user-select: none; -webkit-user-select: none;
         }
         .card-front { z-index: 2; }
         
-        .level-badge {
-            position: absolute; top: 16px; left: 16px; padding: 6px 12px; 
-            border-radius: 12px; color: white; font-size: 0.75em; font-weight: 700; 
-            letter-spacing: 0.5px; z-index: 10; box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-
+        /* 內容樣式 */
+        .level-badge { position: absolute; top: 16px; left: 16px; padding: 6px 12px; border-radius: 12px; color: white; font-size: 0.75em; font-weight: 700; z-index: 10; }
         .card-action-btn { 
-            position: absolute; top: 16px; background: rgba(255,255,255,0.7); 
-            border: 1px solid white; width: 44px; height: 44px; 
-            border-radius: 14px; cursor: pointer; display: flex; 
-            align-items: center; justify-content: center; color: #64748B; 
-            z-index: 20; transition: all 0.3s; box-shadow: 0 4px 10px rgba(0,0,0,0.03);
-            text-decoration: none;
+            position: absolute; top: 16px; background: rgba(255,255,255,0.8); 
+            width: 40px; height: 40px; border-radius: 12px; 
+            display: flex; align-items: center; justify-content: center; color: #64748B; 
+            z-index: 20; transition: all 0.2s; text-decoration: none; border: 1px solid white;
         }
-        .card-action-btn:hover { 
-            background: var(--primary-gradient); border-color: transparent; 
-            color: white; box-shadow: 0 8px 20px rgba(99, 102, 241, 0.4); transform: scale(1.05); 
-        }
-        
+        .card-action-btn:hover { background: var(--primary-gradient); color: white; border-color: transparent; }
         .btn-audio { right: 16px; }
-        .btn-dict { right: 68px; } 
+        .btn-dict { right: 64px; } 
         
-        .card-img { 
-            width: 100%; height: 48%; object-fit: cover; 
-            margin-bottom: 0; border-bottom: 1px solid rgba(255,255,255,0.5); 
-            background-color: rgba(255,255,255,0.5);
-        }
-        
-        .text-area { 
-            padding: 15px; display: flex; flex-direction: column; 
-            align-items: center; width: 100%; flex: 1; justify-content: center; 
-        }
-        .word-text { 
-            font-size: 2em; font-weight: 700; color: var(--text-main); 
-            margin: 5px 0 0 0; text-align: center; letter-spacing: -0.5px;
-            text-shadow: 0 2px 10px rgba(255,255,255,0.8);
-        }
-        .pos-text { 
-            font-size: 0.9em; color: var(--text-sub); font-weight: 500; font-style: italic;
-            background: rgba(255,255,255,0.6); padding: 4px 12px; border-radius: 20px; margin: 8px 0;
-        }
-        .kk-text { 
-            font-size: 1.1em; color: #94A3B8; font-family: 'Outfit', sans-serif; 
-            min-height: 24px; margin-top: 5px;
-        }
+        .card-img { width: 100%; height: 50%; object-fit: cover; border-bottom: 1px solid rgba(255,255,255,0.5); pointer-events: none; }
+        .text-area { padding: 15px; display: flex; flex-direction: column; align-items: center; width: 100%; flex: 1; justify-content: center; }
+        .word-text { font-size: 2em; font-weight: 700; color: var(--text-main); margin: 5px 0 0 0; }
+        .pos-text { font-size: 0.9em; color: var(--text-sub); font-style: italic; background: rgba(255,255,255,0.6); padding: 2px 10px; border-radius: 20px; margin: 5px 0; }
+        .kk-text { font-size: 1.1em; color: #94A3B8; margin-top: 5px; min-height: 24px; }
 
         .card-back { 
-            background: rgba(255,255,255,0.85); /* 背面稍微不透明一點 */
-            transform: rotateY(180deg); padding: 30px; 
-            text-align: center; border: 2px solid #6366F1;
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            background: rgba(255,255,255,0.9); transform: rotateY(180deg); padding: 30px; 
+            border: 2px solid #6366F1;
         }
-        .trans-text { 
-            font-size: 1.8em; font-weight: 700; color: #1E293B; 
-            line-height: 1.6; max-height: 90%; overflow-y: auto; width: 100%;
-        }
-        .hint-text { 
-            font-size: 0.85em; color: #CBD5E1; margin-top: 20px; font-weight: 500;
-        }
+        .trans-text { font-size: 1.8em; font-weight: 700; color: #1E293B; line-height: 1.6; }
+        .hint-text { font-size: 0.85em; color: #CBD5E1; margin-top: 20px; }
 
-        /* --- Pagination (Floating Glass) --- */
+        /* --- Pagination --- */
         .pagination { 
-            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
-            width: auto; min-width: 200px; height: 60px; padding: 0 20px; border-radius: 30px;
-            display: flex; align-items: center; justify-content: center; gap: 20px; 
-            background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(15px); 
+            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+            width: auto; min-width: 180px; height: 50px; padding: 0 15px; border-radius: 30px;
+            display: flex; align-items: center; justify-content: center; gap: 15px; 
+            background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(15px); 
             box-shadow: var(--shadow-float); border: 1px solid rgba(255,255,255,0.6); z-index: 999;
         }
         .page-btn { 
-            background: rgba(255,255,255,0.5); border: 1px solid white; cursor: pointer; 
-            color: var(--text-sub); padding: 8px; border-radius: 50%; 
+            background: white; border: none; cursor: pointer; width: 36px; height: 36px;
+            color: var(--text-sub); border-radius: 50%; 
             display: flex; align-items: center; justify-content: center; transition: all 0.2s; 
         }
-        .page-btn:hover:not(:disabled) { color: white; background: var(--primary-gradient); transform: scale(1.1); border-color: transparent; }
-        .page-btn:disabled { opacity: 0.3; cursor: not-allowed; }
-        .page-info { 
-            font-weight: 700; color: var(--text-main); font-size: 1.1em; 
-            min-width: 80px; text-align: center; font-family: 'Outfit', sans-serif; 
-        }
+        .page-btn:active { transform: scale(0.9); }
+        .page-info { font-weight: 700; color: var(--text-main); font-size: 1em; min-width: 60px; text-align: center; }
 
-        /* --- Mobile Optimizations --- */
+        /* --- 3. & 4. 手機版專屬樣式 (堆疊 + 飛出) --- */
         @media (max-width: 600px) {
-            .pagination { bottom: 20px; width: 85%; }
-            .card-container { flex: 0 0 auto !important; width: 80vw !important; max-width: 80vw !important; height: 45vh; }
-            .filter-bar { padding-left: 15px; }
-            .word-text { font-size: 1.7em; }
-            .card-img { height: 55%; }
-            .level-badge { top: 8px; left: 8px; }
-            .card-action-btn { top: 8px; }
-            .btn-audio { right: 8px; }
-            .btn-dict { right: 60px; } 
+            .pagination { bottom: 30px; }
+            
+            /* 只有手機版只有一張卡片 */
+            .card-container { 
+                width: 85vw !important; 
+                max-width: 340px !important;
+                height: 55vh !important;
+                position: absolute; /* 絕對定位以實現堆疊效果 */
+            }
+
+            /* 3. 錯落堆疊的色塊 (Stack Effect) - 僅手機版顯示 */
+            .card-container::before,
+            .card-container::after {
+                content: ''; position: absolute;
+                top: 0; left: 0; width: 100%; height: 100%;
+                border-radius: 24px;
+                background: rgba(255, 255, 255, 0.5);
+                border: 1px solid rgba(255, 255, 255, 0.4);
+                z-index: -1;
+                transition: transform 0.3s ease;
+            }
+            
+            /* 第一層墊底 (往右旋轉) */
+            .card-container::after {
+                transform: translateY(10px) rotate(3deg) scale(0.95);
+                background: rgba(255, 255, 255, 0.6);
+            }
+            /* 第二層墊底 (往左旋轉) */
+            .card-container::before {
+                transform: translateY(18px) rotate(-2deg) scale(0.9);
+                background: rgba(255, 255, 255, 0.4);
+                z-index: -2;
+            }
+
+            /* 4. 飛走動畫 Class */
+            .fly-out-left {
+                transition: transform 0.5s ease-out, opacity 0.5s;
+                transform: translate(-150%, -20%) rotate(-30deg) !important;
+                opacity: 0;
+            }
+            .fly-out-right {
+                transition: transform 0.5s ease-out, opacity 0.5s;
+                transform: translate(150%, -20%) rotate(30deg) !important;
+                opacity: 0;
+            }
+            
+            /* 隱藏多餘的卡片，只顯示當前這張 (透過 JS 控制 DOM) */
+            #app .card-container:not(:first-child) {
+                display: none; 
+            }
         }
     </style>
 </head>
 <body>
 
-    <!-- 背景泡泡 (增加玻璃質感) -->
+    <!-- 背景泡泡 -->
     <div class="bg-blob blob-1"></div>
     <div class="bg-blob blob-2"></div>
 
@@ -315,8 +265,7 @@
     
     <div id="loading-overlay">
         <div class="spinner"></div>
-        <p id="loading-text" style="color: #64748B; font-weight: 600;">正在讀取資料...</p>
-        <p id="error-log" class="error-msg"></p>
+        <p id="loading-text" style="color: #64748B; font-weight: 600;">資料載入中...</p>
     </div>
 
     <div class="filter-container">
@@ -335,15 +284,14 @@
     <div id="app"></div>
     
     <div class="pagination" id="paginationControl">
-        <button class="page-btn" onclick="animateAndChangePage(-1)"><span class="material-icons">arrow_back</span></button>
-        <span class="page-info" id="pageInfo">- / -</span>
-        <button class="page-btn" onclick="animateAndChangePage(1)"><span class="material-icons">arrow_forward</span></button>
+        <button class="page-btn" onclick="changePage(-1)"><span class="material-icons">arrow_back</span></button>
+        <span class="page-info" id="pageInfo">1 / 10</span>
+        <button class="page-btn" onclick="changePage(1)"><span class="material-icons">arrow_forward</span></button>
     </div>
 
     <script>
-        // Data Config
         const SHEET_ID = '1Piz5rwAWy9f0B0WFjz6WlBTfkp89r_7q4mo41teEkoE';
-        const STORAGE_KEY = 'vocab_card_merged_glass'; 
+        const STORAGE_KEY = 'vocab_card_data_v3'; 
         const LEVEL_CONFIG = [
             { level: 'Level 1', gid: '1467595538' }, { level: 'Level 2', gid: '2047989815' }, 
             { level: 'Level 3', gid: '1028425424' }, { level: 'Level 4', gid: '308416138' }, 
@@ -359,15 +307,22 @@
 
         let fullVocabData = [], displayData = [], currentLetter = 'A', currentLevel = 'All', currentPage = 1, itemsPerPage = 4;
         const phoneticCache = {}; 
-        let isAnimating = false; // 防止動畫中連點
+        let isMobile = window.innerWidth <= 600;
 
         const app = document.getElementById('app');
-        const loadingText = document.getElementById('loading-text');
         const loadingOverlay = document.getElementById('loading-overlay');
 
+        // 初始化
         fetchAllLevels();
 
-        window.addEventListener('resize', () => { updateItemsPerPage(); renderPage(); });
+        window.addEventListener('resize', () => {
+            const newIsMobile = window.innerWidth <= 600;
+            if (newIsMobile !== isMobile) {
+                isMobile = newIsMobile;
+                updateItemsPerPage();
+                renderPage();
+            }
+        });
 
         function saveProgress() {
             localStorage.setItem(STORAGE_KEY, JSON.stringify({ letter: currentLetter, level: currentLevel, page: currentPage }));
@@ -394,11 +349,9 @@
             try {
                 const allData = await Promise.all(promises);
                 fullVocabData = mergeAndDeduplicate(allData.flat());
-                if (fullVocabData.length === 0) throw new Error("無資料");
-                
                 loadProgress(); initAZFilters(); updateItemsPerPage(); applyFilters(true); updateLevelBtnUI();
                 loadingOverlay.style.opacity = '0'; setTimeout(() => loadingOverlay.style.display = 'none', 500);
-            } catch (e) { loadingText.innerText = "資料讀取錯誤"; }
+            } catch (e) { document.getElementById('loading-text').innerText = "Error loading data"; }
         }
 
         function processData(rawData, levelName) {
@@ -431,8 +384,16 @@
         }
 
         function updateItemsPerPage() {
-            const w = window.innerWidth;
-            if (w < 576) itemsPerPage = 1; else if (w < 1024) itemsPerPage = 2; else if (w < 1440) itemsPerPage = 3; else itemsPerPage = 4;
+            // 2. 手機版一次只顯示 1 張，電腦版 4 張
+            if (window.innerWidth <= 600) {
+                itemsPerPage = 1;
+                isMobile = true;
+            } else {
+                // RWD 邏輯
+                if (window.innerWidth < 1024) itemsPerPage = 2; 
+                else itemsPerPage = 4;
+                isMobile = false;
+            }
         }
 
         function initAZFilters() {
@@ -465,67 +426,58 @@
             saveProgress(); renderPage();
         }
 
-        // ★★★ 新增：動畫換頁邏輯 ★★★
-        function animateAndChangePage(dir) {
-            if (isAnimating) return;
-            
+        // 2. 無限循環邏輯
+        function changePage(dir) {
             const total = Math.ceil(displayData.length / itemsPerPage);
-            const next = currentPage + dir;
-            if (next < 1 || next > total) return;
+            let next = currentPage + dir;
+            
+            // Loop
+            if (next > total) next = 1;
+            if (next < 1) next = total;
 
-            isAnimating = true;
-            
-            // 1. 取得當前所有卡片容器
-            const cards = document.querySelectorAll('.card-container');
-            
-            // 2. 套用飛出動畫
-            const animClass = dir > 0 ? 'fly-out-left' : 'fly-out-right'; // 往下一頁(dir=1)則卡片往左飛
-            
-            cards.forEach((card, index) => {
-                // 稍微錯開每個卡片的動畫時間，增加層次感
-                setTimeout(() => {
-                    card.classList.add(animClass);
-                }, index * 50);
-            });
+            // 4. 手機版觸發飛走動畫
+            if (isMobile) {
+                const currentCard = document.querySelector('.card-container');
+                if (currentCard) {
+                    if (dir > 0) currentCard.classList.add('fly-out-left'); // 下一頁往左飛
+                    else currentCard.classList.add('fly-out-right'); // 上一頁往右飛
+                    
+                    // 等待動畫結束再切換資料
+                    setTimeout(() => {
+                        currentPage = next;
+                        saveProgress();
+                        renderPage();
+                    }, 300); // 0.3s animation
+                    return;
+                }
+            }
 
-            // 3. 等待動畫結束後更新 DOM
-            setTimeout(() => {
-                currentPage = next;
-                saveProgress();
-                renderPage(true); // 傳入 true 代表需要飛入動畫
-                isAnimating = false;
-            }, 500); // 配合 CSS 動畫時間
+            currentPage = next;
+            saveProgress();
+            renderPage();
         }
 
-        function renderPage(animateIn = false) {
+        function renderPage() {
             app.innerHTML = '';
             const total = Math.ceil(displayData.length / itemsPerPage);
-            if (currentPage > total && total > 0) currentPage = 1;
-
             if (displayData.length === 0) {
-                app.innerHTML = '<div style="color:#64748B; font-size: 1.2em; font-weight:500;">此分類無資料</div>';
+                app.innerHTML = '<div style="color:#64748B;">此分類無資料</div>';
                 document.getElementById('paginationControl').style.display = 'none';
                 return;
             }
             document.getElementById('paginationControl').style.display = 'flex';
+            document.getElementById('pageInfo').innerText = `${currentPage} / ${total}`;
 
             const start = (currentPage - 1) * itemsPerPage;
             const pageData = displayData.slice(start, start + itemsPerPage);
-            
-            document.getElementById('pageInfo').innerText = `${currentPage} / ${total}`;
-            document.querySelectorAll('.page-btn')[0].disabled = (currentPage === 1);
-            document.querySelectorAll('.page-btn')[1].disabled = (currentPage === total);
 
             pageData.forEach((item, index) => {
                 const div = document.createElement('div');
                 div.className = 'card-container';
+                // 4. 手機版動畫：如果是 Tinder Swipe，這裡可以加 fly-in class (選用)
                 
-                // 如果是換頁來的，加上飛入動畫
-                if (animateIn) {
-                    div.style.opacity = '0'; // 初始隱藏
-                    div.classList.add('fly-in');
-                    div.style.animationDelay = `${index * 100}ms`; // 錯開飛入時間
-                }
+                // 綁定 Tinder Swipe 邏輯
+                if (isMobile) initTinderSwipe(div);
 
                 const kkId = `kk-${item.word}-${Math.random().toString(36).substr(2, 5)}`;
                 div.innerHTML = `
@@ -533,9 +485,9 @@
                         <div class="card-face card-front">
                             <div class="level-badge" style="background:${getLevelColor(item.level)}">${item.level}</div>
                             <a href="https://dictionary.cambridge.org/dictionary/english-chinese-traditional/${item.word.toLowerCase()}" 
-                               target="_blank" class="card-action-btn btn-dict" onclick="event.stopPropagation()"
-                               title="查詢"><span class="material-icons">menu_book</span></a>
-                            <button class="card-action-btn btn-audio" onclick="playAudio(event, '${item.word}')" title="發音">
+                               target="_blank" class="card-action-btn btn-dict" onclick="event.stopPropagation()">
+                               <span class="material-icons">menu_book</span></a>
+                            <button class="card-action-btn btn-audio" onclick="playAudio(event, '${item.word}')">
                                 <span class="material-icons">volume_up</span>
                             </button>
                             <img src="${item.img}" alt="${item.word}" class="card-img" loading="lazy" onerror="this.src='https://dummyimage.com/400x300/f1f5f9/cbd5e1&text=${item.word}'">
@@ -551,9 +503,64 @@
                         </div>
                     </div>
                 `;
-                div.querySelector('.card').onclick = function() { this.classList.toggle('flipped'); };
+                div.querySelector('.card').onclick = function() { 
+                    // 防止 swipe 時觸發翻轉
+                    if (!this.parentElement.classList.contains('swiping')) {
+                        this.classList.toggle('flipped'); 
+                    }
+                };
                 app.appendChild(div);
                 if (!phoneticCache[item.word]) fetchPhonetic(item.word, kkId);
+            });
+        }
+
+        // 4. Tinder Swipe Logic (Mobile Only)
+        function initTinderSwipe(cardContainer) {
+            let startX = 0, currentX = 0, isDragging = false;
+            const threshold = 100; // 飛出觸發距離
+
+            const card = cardContainer.querySelector('.card');
+
+            cardContainer.addEventListener('touchstart', (e) => {
+                startX = e.touches[0].clientX;
+                isDragging = true;
+                cardContainer.classList.add('swiping'); // 標記正在滑動
+                card.style.transition = 'none'; // 移除過渡以即時跟隨
+            });
+
+            cardContainer.addEventListener('touchmove', (e) => {
+                if (!isDragging) return;
+                currentX = e.touches[0].clientX;
+                const diffX = currentX - startX;
+                const rotate = diffX * 0.05; // 根據距離旋轉
+                
+                card.style.transform = `translateX(${diffX}px) rotate(${rotate}deg)`;
+                // 判斷是否 flipped，若有要保留翻轉狀態 (這裡簡化處理，拖曳時主要看當前視角)
+                // 若原本是 flipped，transform 順序可能會影響，Tinder 通常建議操作正面
+            });
+
+            cardContainer.addEventListener('touchend', () => {
+                isDragging = false;
+                card.style.transition = 'transform 0.5s ease'; // 恢復過渡
+                const diffX = currentX - startX;
+
+                if (Math.abs(diffX) > threshold) {
+                    // 飛出
+                    const dir = diffX > 0 ? 1 : -1; // 右滑=上一頁(-1), 左滑=下一頁(1)? 
+                    // 一般習慣：左滑(Next/Dislike) 右滑(Prev/Like)。
+                    // 這裡設定：往左滑(diffX < 0) -> 下一頁, 往右滑 -> 上一頁
+                    
+                    const flyX = dir * window.innerWidth * 1.5;
+                    card.style.transform = `translateX(${flyX}px) rotate(${dir * 45}deg)`;
+                    
+                    setTimeout(() => {
+                        changePage(dir < 0 ? 1 : -1); // 左滑(負) -> 下一頁(+1)
+                    }, 300);
+                } else {
+                    // 回歸原位
+                    card.style.transform = ''; 
+                    setTimeout(() => cardContainer.classList.remove('swiping'), 100);
+                }
             });
         }
 
@@ -578,26 +585,11 @@
             }
         }
 
-        // Swipe with Animation
-        function initSwipeDetection() {
-            const c = document.getElementById('app');
-            let sx=0, sy=0, ex=0, ey=0;
-            c.addEventListener('touchstart', e => { sx=e.changedTouches[0].screenX; sy=e.changedTouches[0].screenY; }, {passive:true});
-            c.addEventListener('touchend', e => {
-                ex=e.changedTouches[0].screenX; ey=e.changedTouches[0].screenY;
-                const xd = ex-sx, yd = ey-sy;
-                if(Math.abs(xd) > Math.abs(yd) && Math.abs(xd) > 50) {
-                    if(xd > 0) animateAndChangePage(-1); else animateAndChangePage(1);
-                }
-            }, {passive:true});
-        }
-
+        // 載入 Header
         fetch('header.html').then(r => r.text()).then(d => {
             document.getElementById('header-container').innerHTML = d;
             window.toggleMobileMenu = function() { document.getElementById('mobileNav').classList.toggle('open'); };
         });
-
-        initSwipeDetection();
     </script>
 </body>
 </html>
