@@ -570,8 +570,7 @@
         renderPage();
     }
 
-    // --- 畫面渲染 ---
-    function renderPage() {
+function renderPage() {
         // 保留堆疊背景
         const stackBg = document.querySelector('.stack-background');
         app.innerHTML = ''; 
@@ -596,7 +595,7 @@
         document.getElementById('pageInfo').innerText = `${currentPage} / ${total}`;
         const btns = document.querySelectorAll('.page-btn');
         if(btns.length > 0) {
-            btns[0].disabled = (currentPage === 1 && total <= 1); // 只有一頁時都 disable
+            btns[0].disabled = (currentPage === 1 && total <= 1);
             btns[1].disabled = (currentPage === total && total <= 1);
         }
 
@@ -632,8 +631,12 @@
                     </div>
                 </div>
             `;
-            // 卡片翻轉
-            div.querySelector('.card').onclick = function() { this.classList.toggle('flipped'); };
+            
+            // ★★★ 修改點：單純的點擊翻面，其他邏輯交給 initTinderSwipe 控制 ★★★
+            div.querySelector('.card').onclick = function() { 
+                this.classList.toggle('flipped'); 
+            };
+            
             app.appendChild(div);
 
             if (!phoneticCache[item.word]) fetchPhonetic(item.word, kkId);
@@ -669,13 +672,19 @@
     }
 
     // --- 手機版 Tinder Swipe 效果 ---
+// --- 手機版 Tinder Swipe 效果 (已優化誤觸問題) ---
     function initTinderSwipe(cardContainer) {
-        let startX = 0, currentX = 0, isDragging = false;
-        const threshold = 100; // 滑動門檻
+        let startX = 0, currentX = 0;
+        let isDragging = false; 
+        let hasMoved = false; // ★ 新增：用來標記是否發生了「有效位移」
+
+        const swipeThreshold = 100; // 觸發換頁的門檻
+        const moveTolerance = 10;   // ★ 新增：防抖動門檻 (移動小於此數值視為點擊)
 
         cardContainer.addEventListener('touchstart', (e) => {
             startX = e.touches[0].clientX;
             isDragging = true;
+            hasMoved = false; // 重置移動狀態
             cardContainer.style.transition = 'none'; 
         }, {passive: true});
 
@@ -683,36 +692,60 @@
             if (!isDragging) return;
             currentX = e.touches[0].clientX;
             const diffX = currentX - startX;
-            const rotate = diffX * 0.05; 
-            const liftY = -Math.abs(diffX) * 0.2; 
 
-            cardContainer.style.transform = `translate(${diffX}px, ${liftY}px) rotate(${rotate}deg)`;
-            
-            if (Math.abs(diffX) > 5) cardContainer.classList.add('is-dragging');
-        }, {passive: true});
+            // ★ 只有移動超過 tolerance (10px) 才開始視覺變化
+            // 這樣手指輕微抖動時，卡片不會亂動
+            if (Math.abs(diffX) > moveTolerance) {
+                hasMoved = true; // 標記為「已移動」，這不是點擊
+                
+                const rotate = diffX * 0.05; 
+                const liftY = -Math.abs(diffX) * 0.2; 
+                
+                cardContainer.style.transform = `translate(${diffX}px, ${liftY}px) rotate(${rotate}deg)`;
+                cardContainer.classList.add('is-dragging');
+            }
+        }, {passive: false}); // 這裡改為 passive: false 以便我們需要時可以控制預設行為
 
-        cardContainer.addEventListener('touchend', () => {
+        cardContainer.addEventListener('touchend', (e) => {
             if (!isDragging) return;
             isDragging = false;
+            
             const diffX = currentX - startX;
 
-            cardContainer.style.transition = 'transform 0.4s ease-out, opacity 0.4s';
+            // ★ 情況 A：發生了有效滑動 (移動超過 10px)
+            if (hasMoved) {
+                // ！！！關鍵！！！
+                // 如果發生了滑動，我們阻止瀏覽器產生「Click」事件
+                // 這樣手指離開時，就不會觸發卡片翻面 (flip)
+                if (e.cancelable) e.preventDefault(); 
+                e.stopPropagation();
 
-            if (Math.abs(diffX) > threshold) {
-                const dir = diffX > 0 ? 1 : -1; 
-                const flyX = dir * window.innerWidth * 1.5;
-                const flyY = -200; 
-                
-                cardContainer.style.transform = `translate(${flyX}px, ${flyY}px) rotate(${dir * 45}deg)`;
-                cardContainer.style.opacity = '0'; 
+                // 恢復動畫過渡
+                cardContainer.style.transition = 'transform 0.4s ease-out, opacity 0.4s';
 
-                setTimeout(() => {
-                    // 往右滑(上一頁), 往左滑(下一頁)
-                    changePage(dir > 0 ? -1 : 1); 
-                }, 300);
-            } else {
-                cardContainer.style.transform = ''; 
-                setTimeout(() => cardContainer.classList.remove('is-dragging'), 100);
+                // 判斷是否超過換頁門檻 (100px)
+                if (Math.abs(diffX) > swipeThreshold) {
+                    // --- 飛走換頁 ---
+                    const dir = diffX > 0 ? 1 : -1; 
+                    const flyX = dir * window.innerWidth * 1.5;
+                    const flyY = -200; 
+                    
+                    cardContainer.style.transform = `translate(${flyX}px, ${flyY}px) rotate(${dir * 45}deg)`;
+                    cardContainer.style.opacity = '0'; 
+
+                    setTimeout(() => {
+                        changePage(dir > 0 ? -1 : 1); 
+                    }, 300);
+                } else {
+                    // --- 回彈 (滑動距離不夠) ---
+                    cardContainer.style.transform = ''; 
+                    setTimeout(() => cardContainer.classList.remove('is-dragging'), 100);
+                }
+            } 
+            // ★ 情況 B：移動極小 (小於 10px) -> 視為點擊
+            else {
+                // 這裡什麼都不用做，瀏覽器會自動觸發原本綁定在 .card 上的 onclick
+                // 卡片就會翻面
             }
         });
     }
