@@ -16,42 +16,89 @@
     <style>
         /* --- 變數設定 --- */
         :root {
+            --bg-body: #F8FAFC; /* 極淡的冷灰白底色 */
             --bg-card: #FFFFFF;
             --text-main: #1E293B;
             --text-sub: #64748B;
             --primary-gradient: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
-            --shadow-card: 0 20px 40px -5px rgba(30, 41, 59, 0.15);
+            /* 加深一點陰影，因為背景變淺了，卡片需要對比 */
+            --shadow-card: 0 20px 60px -10px rgba(71, 85, 105, 0.15); 
         }
 
         body {
             font-family: 'Outfit', 'Noto Sans TC', sans-serif;
             margin: 0; padding: 0;
-            background-color: #000;
+            background-color: var(--bg-body);
             height: 100vh;
             width: 100vw;
             overflow: hidden;
             position: relative;
         }
 
-        /* --- 1. 背景影片層 --- */
-        .video-background {
+        /* --- 1. 背景呼吸光點層 (Ambient Light) --- */
+        .ambient-layer {
             position: fixed;
-            top: 0; right: 0; bottom: 0; left: 0;
-            width: 100%; height: 100%;
+            top: 0; left: 0; width: 100%; height: 100%;
             z-index: 0;
+            pointer-events: none; /* 讓滑鼠穿透，不影響點擊 */
             overflow: hidden;
         }
 
-        .video-background video {
-            width: 100%; height: 100%;
-            object-fit: cover;
-            
-            /* ★★★ 修改重點在此 ★★★ */
-            /* brightness(0.7): 讓影片變暗，確保白字看得清楚 */
-            /* grayscale(100%): 將影片轉為純黑白 */
-            /* contrast(1.1): 稍微加一點對比，讓黑白畫面更有層次感 */
-            filter: brightness(0.7) grayscale(100%) contrast(1.1); 
+        /* 光點共用設定 */
+        .light-blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px); /* 強力模糊，製造光暈感 */
+            opacity: 0.7;
+            animation: breathe 10s infinite ease-in-out alternate;
         }
+
+        /* 光點 A: 淡紫色 (左上) */
+        .blob-1 {
+            top: -10%;
+            left: -10%;
+            width: 50vw;
+            height: 50vw;
+            background: #E0E7FF; /* 很淡的紫藍色 */
+            animation-duration: 15s;
+        }
+
+        /* 光點 B: 淡粉/膚色 (右下) */
+        .blob-2 {
+            bottom: -10%;
+            right: -10%;
+            width: 60vw;
+            height: 60vw;
+            background: #F3E8FF; /* 很淡的粉紫色 */
+            animation-duration: 12s;
+            animation-delay: -5s;
+        }
+
+        /* 光點 C: 輔助亮點 (游動) */
+        .blob-3 {
+            top: 40%;
+            left: 40%;
+            width: 30vw;
+            height: 30vw;
+            background: #EFF6FF; /* 幾乎白色的藍 */
+            opacity: 0.6;
+            animation: floatMove 20s infinite ease-in-out;
+        }
+
+        /* 動畫：呼吸 (變大變小) */
+        @keyframes breathe {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.1); }
+        }
+
+        /* 動畫：游動 (位移 + 旋轉) */
+        @keyframes floatMove {
+            0% { transform: translate(0, 0) rotate(0deg); }
+            33% { transform: translate(100px, -50px) rotate(120deg); }
+            66% { transform: translate(-50px, 100px) rotate(240deg); }
+            100% { transform: translate(0, 0) rotate(360deg); }
+        }
+
 
         /* --- 2. 右下角資訊卡片 --- */
         .info-card {
@@ -161,6 +208,11 @@
             }
             .name-title { font-size: 1.5em; }
             .card-content p { font-size: 14px; margin-bottom: 20px; }
+            
+            /* 手機版調整光點大小，避免佔據太多運算資源 */
+            .light-blob { filter: blur(60px); }
+            .blob-1 { width: 80vw; height: 80vw; }
+            .blob-2 { width: 90vw; height: 90vw; }
         }
     </style>
 </head>
@@ -169,16 +221,11 @@
     <!-- Header 容器 -->
     <div id="header-container"></div>
     
-    <!-- 1. 背景影片區 -->
-    <div class="video-background">
-        <!-- 
-           請確認檔案存在且路徑正確
-           如果還是黑屏，請參考先前的建議檢查影片編碼或嘗試線上影片
-        -->
-        <video autoplay muted loop playsinline>
-            <source src="image/ocean.mp4" type="video/mp4">
-            您的瀏覽器不支援 HTML5 影片。
-        </video>
+    <!-- 1. 背景呼吸光點層 -->
+    <div class="ambient-layer">
+        <div class="light-blob blob-1"></div>
+        <div class="light-blob blob-2"></div>
+        <div class="light-blob blob-3"></div>
     </div>
 
     <!-- 2. 右下角資訊卡片 -->
