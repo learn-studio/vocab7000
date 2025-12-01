@@ -134,13 +134,19 @@
 
         /* 手機版 Menu 按鈕 */
         .mobile-menu-btn {
-            display: none;
+            display: none; /* 電腦版隱藏 */
             background: none;
             border: none;
             font-size: 28px;
             color: #333;
             cursor: pointer;
             padding: 5px;
+            
+            /* ★★★ 新增以下設定來強制置中 ★★★ */
+            align-items: center;
+            justify-content: center;
+            line-height: 0; 
+            margin-right: -5px; /* 微調右邊距，讓視覺上更靠右對齊 */
         }
 
         /* 手機版導航 */
@@ -177,14 +183,18 @@
         }
 
         /* RWD (手機版設定) */
+/* RWD (手機版設定) */
         @media (max-width: 768px) {
             .desktop-nav { display: none; }
-            .mobile-menu-btn { display: block; }
+            
+            /* ★★★ 修改處：改成 flex 才能吃到上面的 align-items ★★★ */
+            .mobile-menu-btn { display: flex; } 
+            
             .mobile-nav-overlay.open { display: flex; }
 
-            /* ★★★ 修改處：手機版 Logo 變小 ★★★ */
+            /* ★★★ 修改處：Logo 放大 (原本 30px -> 改為 33px) ★★★ */
             .header-logo img {
-                height: 30px; /* 原本是 40px，這裡改小 */
+                height: 33px; 
             }
         }
 
