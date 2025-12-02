@@ -374,19 +374,22 @@ function init() {
     checkDailyReset(); calculateXP(); renderGrid(); renderQuestList();
 }
         function saveData() { localStorage.setItem('mandala_lite_v4', JSON.stringify(mandala)); calculateXP(); }
-        function checkDailyReset() {
+function checkDailyReset() {
     const today = new Date().toDateString();
     
-    // 如果紀錄的日期不是今天 (代表跨日了，或是第一次開)
+    // 如果日期不同 (代表換日了)
     if (mandala.lastLoginDate !== today) {
         
-        // 1. 清空右側/下方的「今日副本」清單
+        // 1. 清空下方的「今日副本」清單
         mandala.dailyQuests = [];
         
-        // 2. ★★★ 新增這段：把所有格子的「打勾狀態」全部歸零 ★★★
+        // 2. 把格子上的「打勾狀態」取消 (變回白色，讓你明天可以重做)
         mandala.sectors.forEach(sector => {
-            // 重新填滿 8 個 false，這樣格子就會變回白色，文字也不會被畫掉
             sector.done = Array(8).fill(false);
+            
+            // ★★★ 關鍵點：我們只重置 done (狀態)，但不重置 score (分數) ★★★
+            // 因為 score 留著，所以 calculateXP() 算出來的等級會保留
+            // 雷達圖讀取的也是 score，所以數據也會保留
         });
 
         // 3. 更新最後登入日期為今天
