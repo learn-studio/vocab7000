@@ -73,26 +73,30 @@
         /* --- Grid 佈局系統 (響應式核心) --- */
         #app {
             width: 100%; flex: 1;
-            display: flex; justify-content: center; align-items: flex-start; /* 改為上方對齊 */
+            display: flex; justify-content: center; align-items: flex-start; 
             position: relative;
             overflow: hidden;
         }
 
+        /* 
+           調整：手機版預設尺寸 
+           Width: 70vw (比原本 90vw 少約 20%)
+           Height: 50vh (比原本 55vh 少約 5%)
+        */
         .grid-container {
             display: grid;
-            width: 90vw; max-width: 1200px;
-            /* 預設手機版 1 欄 */
+            width: 70vw; /* 手機版變窄 */
+            height: 50vh; min-height: 400px; /* 手機版變矮 */
             grid-template-columns: 1fr; 
             gap: 20px;
             perspective: 1000px;
             justify-items: center;
-            /* 手機版高度縮小 */
-            height: 55vh; min-height: 420px;
         }
 
-        /* 平板版 (>= 768px): 2 欄 */
+        /* 平板版 (>= 768px): 恢復寬度，顯示 2 欄 */
         @media (min-width: 768px) {
             .grid-container {
+                width: 90vw; /* 恢復較寬的版面 */
                 grid-template-columns: 1fr 1fr;
                 height: 60vh; min-height: 500px;
             }
@@ -101,6 +105,7 @@
         /* 電腦版 (>= 1024px): 3 欄 */
         @media (min-width: 1024px) {
             .grid-container {
+                width: 90vw; max-width: 1200px;
                 grid-template-columns: 1fr 1fr 1fr;
                 height: 65vh;
             }
@@ -120,9 +125,9 @@
             transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
             border-radius: var(--card-radius);
             box-shadow: var(--shadow-card);
-            /* 防止文字選取干擾拖曳 */
             user-select: none; -webkit-user-select: none;
         }
+        /* CSS 控制翻轉 */
         .card.flipped { transform: rotateY(180deg); }
 
         .card-face {
@@ -132,7 +137,6 @@
             border-radius: var(--card-radius);
             overflow: hidden;
             display: flex; flex-direction: column;
-            /* 關鍵：讓 JS 接管觸控 */
             touch-action: none; 
         }
 
@@ -153,7 +157,7 @@
             display: block; pointer-events: none;
         }
 
-        /* 右上角按鈕 (改為獨立圓形) */
+        /* 右上角獨立按鈕 */
         .action-cluster-float {
             position: absolute; top: 12px; right: 12px; z-index: 20;
             display: flex; gap: 8px;
@@ -365,7 +369,6 @@
     fetchAllLevels();
     initUI();
     
-    // 監聽視窗大小改變，即時重繪 (響應式數量)
     window.addEventListener('resize', () => {
         renderGrid();
     });
@@ -556,17 +559,13 @@
 
     function nextPage(dir) {
         if (displayData.length === 0) return;
-        
         const pageSize = getPageSize();
-        // 如果是手機版，一次移動 1 張，否則移動一頁 (pageSize)
         const moveAmount = pageSize; 
 
         let next = currentIndex + (dir * moveAmount);
         
-        // 循環邏輯
         if (next >= displayData.length) next = 0;
         if (next < 0) {
-            // 回到最後一頁的開頭
             next = Math.floor((displayData.length - 1) / moveAmount) * moveAmount;
             if (next < 0) next = 0;
         }
@@ -580,7 +579,6 @@
         const total = displayData.length;
         const pageSize = getPageSize();
         
-        // 更新計數器 (顯示目前第一個索引)
         const currentDisplay = total > 0 ? currentIndex + 1 : 0;
         document.getElementById('pageCounter').innerText = `${currentDisplay} / ${total}`;
 
@@ -589,10 +587,9 @@
             return;
         }
 
-        // 渲染此頁的卡片
         for (let i = 0; i < pageSize; i++) {
             const dataIndex = currentIndex + i;
-            if (dataIndex >= displayData.length) break; // 超出資料範圍
+            if (dataIndex >= displayData.length) break; 
 
             const item = displayData[dataIndex];
             const cardElement = createCardElement(item);
@@ -601,20 +598,17 @@
     }
 
     function createCardElement(item) {
-        const kkId = `kk-${item.word}-${Math.random().toString(36).substr(2, 9)}`; // 唯一 ID
+        const kkId = `kk-${item.word}-${Math.random().toString(36).substr(2, 9)}`; 
         const currentStatus = statusDB[item.word]; 
 
         const wrapper = document.createElement('div');
         wrapper.className = 'card-wrapper';
         
-        // HTML 結構
         wrapper.innerHTML = `
             <div class="card">
                 <div class="card-face front-face">
                     <div class="visual-wrapper">
                         <img src="${item.img}" class="word-image" loading="lazy">
-                        
-                        <!-- 右上角獨立按鈕 -->
                         <div class="action-cluster-float" onclick="event.stopPropagation()">
                             <button class="action-circle" onclick="playAudio('${item.word}')">
                                 <span class="material-icons">volume_up</span>
@@ -652,10 +646,8 @@
             </div>
         `;
 
-        // 綁定單張卡片的互動邏輯
         bindCardInteraction(wrapper);
 
-        // Fetch Phonetic
         if (!phoneticCache[item.word]) {
             fetchPhonetic(item.word, kkId);
         } else {
@@ -668,24 +660,20 @@
         return wrapper;
     }
 
-    // --- 核心互動邏輯：解決翻面與滑動衝突 ---
+    // --- 核心互動：修復翻面問題 ---
     function bindCardInteraction(wrapperElement) {
         const card = wrapperElement.querySelector('.card');
         let startX = 0, startY = 0;
         let isTouch = false;
         let hasMoved = false;
         
-        // 1. Touch Events (Mobile Swipe & Flip)
         wrapperElement.addEventListener('touchstart', (e) => {
-            // 如果點到按鈕，不處理
             if (e.target.closest('button') || e.target.closest('a') || e.target.closest('.status-btn')) return;
-            
             isTouch = true;
             startX = e.touches[0].clientX;
             startY = e.touches[0].clientY;
             hasMoved = false;
             
-            // 只有手機版 (pageSize=1) 才啟用 Swipe 動畫跟隨
             if (getPageSize() === 1) {
                 card.style.transition = 'none';
             }
@@ -695,12 +683,8 @@
             if (!isTouch) return;
             const currentX = e.touches[0].clientX;
             const diffX = currentX - startX;
-            const diffY = e.touches[0].clientY - startY;
-
-            // 判斷是否為水平滑動
             if (Math.abs(diffX) > 10) {
                 hasMoved = true;
-                // 手機版：跟隨手指
                 if (getPageSize() === 1) {
                     const rotate = diffX * 0.05;
                     const baseTransform = card.classList.contains('flipped') ? 'rotateY(180deg)' : '';
@@ -715,50 +699,32 @@
             const endX = e.changedTouches[0].clientX;
             const diffX = endX - startX;
 
-            card.style.transition = 'transform 0.4s ease'; // 恢復動畫
+            card.style.transition = 'transform 0.4s ease'; 
 
-            // 判斷是否為手機版 Swipe (門檻 80px)
             if (getPageSize() === 1 && Math.abs(diffX) > 80 && hasMoved) {
-                // Swipe: Change Page
+                // Swipe
                 const dir = diffX > 0 ? -1 : 1; 
                 const flyX = diffX > 0 ? window.innerWidth : -window.innerWidth;
                 const baseTransform = card.classList.contains('flipped') ? 'rotateY(180deg)' : '';
-                
                 card.style.transform = `translateX(${flyX}px) rotate(${diffX > 0 ? 20 : -20}deg) ${baseTransform}`;
-                
                 setTimeout(() => nextPage(dir), 200);
             } else {
-                // Not Swipe: Reset Position
+                // Reset (Cancel Swipe or Tap)
+                // 1. 先復原位置 (處理拖曳後的回彈)
                 const baseTransform = card.classList.contains('flipped') ? 'rotateY(180deg)' : '';
                 card.style.transform = baseTransform;
 
-                // 如果移動極小 (Tap)，則翻面
+                // 2. 判斷是否為「點擊」(Tap)
                 if (Math.abs(diffX) < 5 && Math.abs(e.changedTouches[0].clientY - startY) < 5) {
-                    // Tap -> Flip
-                    card.classList.toggle('flipped');
+                    // 重要修正：清空 inline style，否則會覆蓋 CSS class
+                    card.style.transform = ''; 
+                    // 執行翻面
+                    setTimeout(() => card.classList.toggle('flipped'), 10);
                 }
             }
         });
 
-        // 2. Mouse Click (Desktop Flip)
-        wrapperElement.addEventListener('click', (e) => {
-            // 如果是 Touch 裝置觸發的 Click (會在 Touchend 後)，忽略它，以免雙重觸發
-            // 我們用一個簡單的時間差或直接檢測 Touch 事件是否剛發生過來處理有點複雜
-            // 最簡單的方式：檢查是否剛發生過 TouchStart (這裡簡化處理)
-            
-            // 只有當這不是 Touch 觸發的模擬 Click 時才執行
-            // 但因為我們上面的 touchend 已經處理了 Flip，所以這裡其實只需要處理 Desktop Mouse Click
-            // 我們可以透過檢查 event.pointerType (如果瀏覽器支援) 或簡單檢查按鈕
-            
-            if (e.target.closest('button') || e.target.closest('a') || e.target.closest('.status-btn')) return;
-            
-            // 這裡做一個簡單的防呆，如果剛觸發過 touch，就不處理 click
-            // 實務上可以略過，因為我們在 touchend 沒有 preventDefault，click 還是會發生
-            // 但因為我們在 touchend 裡手動 toggle 了，所以這裡最好擋掉
-            // 由於這是一個純前端簡單實作，我們假設桌面版沒有 touch 事件
-        });
-        
-        // 桌面版專用 Click 監聽 (如果不支援 Touch)
+        // 桌面版 Click 監聽
         if (!('ontouchstart' in window)) {
             wrapperElement.addEventListener('click', (e) => {
                 if (e.target.closest('button') || e.target.closest('a') || e.target.closest('.status-btn')) return;
