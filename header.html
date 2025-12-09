@@ -2,82 +2,77 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Site Header</title>
     <!-- 引入 Google Material Icons -->
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <!-- 引入英文字體 Outfit -->
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;700;800&display=swap" rel="stylesheet">
     
     <style>
         /* --- 基礎設定 --- */
-        body { margin: 0; padding: 0; width: 100%; font-family: 'Segoe UI', sans-serif; }
+        body { margin: 0; padding: 0; width: 100%; font-family: 'Segoe UI', sans-serif; background-color: #F0F2F5; }
 
         /* --- Header CSS --- */
         .site-header {
             position: sticky; 
             top: 0; left: 0;
             width: 100%;
-            height: 60px;
             
-            background-color: transparent; 
-
-            /* 基本透明設定 */
-    background-color: rgba(255, 255, 255, 0.1); /* 微微的白色透明底，增加可讀性 */
-    
-    /* ★ 關鍵：毛玻璃特效 ★ */
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px); /* 支援 Safari */
+            /* ★ 修改 1：極簡 App 風格設定 ★ */
+            height: 80px; /* 高度加高，增加透氣感 */
+            padding: 0 24px; /* 左右間距加大 */
             
-            /* 底部 1px 藍色底線 */
-            border-bottom: 1px solid #0056D2; 
+            background-color: transparent; /* 完全透明背景 */
+            /* 如果希望滑動時文字不被內容干擾，可保留下方這行毛玻璃，若要完全透明可移除 */
+            backdrop-filter: blur(8px); 
+            -webkit-backdrop-filter: blur(8px);
+            
+            /* 移除底線與陰影 */
+            border-bottom: none; 
             box-shadow: none;
             
             display: flex; align-items: center; justify-content: space-between;
-            padding: 0 20px; box-sizing: border-box;
+            box-sizing: border-box;
             z-index: 1001; flex-shrink: 0; 
             
+            /* 避開手機瀏海 */
             padding-top: env(safe-area-inset-top);
-            height: calc(60px + env(safe-area-inset-top));
+            height: calc(80px + env(safe-area-inset-top));
         }
 
         .site-header a { text-decoration: none !important; }
 
-        /* ★ 修改 1：Logo 樣式 (窄一點、小一點、像 Level 標籤) ★ */
+        /* ★ 修改 2：Logo 樣式 (純文字、無框) ★ */
         .header-logo {
             display: flex;
             align-items: center;
-            justify-content: center;
             text-decoration: none;
             
-            /* 風格：透明底、藍字、藍框 */
+            /* 風格：無框、純藍字 */
             background-color: transparent;
             color: #0056D2 !important;
-            border: 1px solid #0056D2;
+            border: none;
             
-            /* 字體設定 */
+            /* 字體設定：加大、加粗，更像 App 標題 */
             font-family: 'Outfit', sans-serif;
-            font-weight: 700;
-            font-size: 15px; /* 字體縮小 */
-            letter-spacing: 0.5px;
-            
-            /* 尺寸設定 (模仿篩選器大小) */
-            height: 32px; /* 高度縮小 */
-            padding: 0 10px; /* 寬度縮窄 */
-            border-radius: 4px; 
+            font-weight: 800;
+            font-size: 24px; 
+            letter-spacing: -0.5px; /* 字距微縮更緊湊 */
         }
 
         /* 電腦版導航選單 */
-        .desktop-nav { display: flex; align-items: center; gap: 30px; }
+        .desktop-nav { display: flex; align-items: center; gap: 40px; }
 
         .nav-item {
-            color: #333 !important;
-            font-weight: 500;
-            font-size: 15px;
+            color: #555 !important;
+            font-weight: 600;
+            font-size: 16px;
             cursor: pointer;
             position: relative;
             transition: color 0.2s;
             display: flex; align-items: center;
+            font-family: 'Outfit', sans-serif;
         }
 
         .nav-item:hover { color: #0056D2 !important; }
@@ -86,109 +81,124 @@
         .dropdown { position: relative; height: 100%; display: flex; align-items: center; }
         
         .dropdown-content {
-            display: none; position: absolute; top: 100%; right: -10px;
-            background-color: #fff; min-width: 180px;
-            border: 1px solid #0056D2;
-            border-top: none;
-            box-shadow: 4px 4px 0 rgba(0, 86, 210, 0.1);
-            border-radius: 0 0 4px 4px;
+            display: none; position: absolute; top: 80%; right: 0;
+            background-color: #fff; min-width: 200px;
+            /* 下拉選單改為輕微圓角與陰影，無邊框 */
+            border: none;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            border-radius: 12px;
+            padding: 8px;
             overflow: hidden; z-index: 1002;
         }
 
         .dropdown:hover .dropdown-content { display: block; animation: fadeIn 0.2s ease-in-out; }
 
         .dropdown-content a {
-            color: #333 !important; padding: 12px 20px; display: block; font-size: 15px;
-            transition: background 0.1s, color 0.1s; text-align: left;
+            color: #333 !important; padding: 12px 16px; display: block; font-size: 15px;
+            transition: background 0.1s; text-align: left; border-radius: 8px;
         }
-        .dropdown-content a:hover { background-color: #F0F4F8; color: #0056D2 !important; }
+        .dropdown-content a:hover { background-color: #F5F7FA; color: #0056D2 !important; }
 
-        /* ★ 修改 2：手機版 Menu 按鈕樣式 (窄一點、小一點、透明底) ★ */
+        /* ★ 修改 3：Menu 按鈕 (四格方塊 Icon、無框) ★ */
         .mobile-menu-btn {
             display: none; 
             cursor: pointer;
             
-            /* 尺寸縮小 */
-            width: 32px;
-            height: 32px;
+            /* 尺寸 */
+            width: 40px;
+            height: 40px;
             padding: 0;
-            margin-right: 0;
             
             /* Flex 置中 */
             align-items: center;
-            justify-content: center;
+            justify-content: flex-end; /* 靠右對齊 */
             
-            /* 風格設定：透明底、藍框、藍字 */
+            /* 風格設定：全透明、無框 */
             background-color: transparent;
-            border: 1px solid #0056D2;
-            color: #0056D2;
-            border-radius: 4px;
+            border: none;
+            color: #0056D2; /* Icon 顏色 */
             
             outline: none;
+            transition: transform 0.2s;
         }
         
+        .mobile-menu-btn:active { transform: scale(0.9); }
+        
         .mobile-menu-btn .material-icons {
-            font-size: 20px; /* Icon 也跟著縮小 */
+            font-size: 28px; /* Icon 稍微加大 */
         }
 
         /* 手機版導航展開 */
         .mobile-nav-overlay {
-            display: none; position: fixed; top: 60px; left: 0; width: 100%;
-            background: white; 
-            border-bottom: 1px solid #0056D2;
+            display: none; position: fixed; 
+            top: 0; left: 0; width: 100%; height: 100vh;
+            background: rgba(255,255,255,0.98); 
             flex-direction: column; z-index: 1000;
-            top: calc(60px + env(safe-area-inset-top));
+            padding-top: 100px; /* 避開 Header */
+            opacity: 0; transition: opacity 0.3s;
         }
+        
+        .mobile-nav-overlay.open { display: flex; opacity: 1; }
         
         .mobile-nav-overlay a, .mobile-nav-overlay div {
-            padding: 15px 20px;
-            border-bottom: 1px solid #f0f0f0;
+            padding: 20px 32px;
+            border-bottom: none; /* 移除分隔線，更乾淨 */
             text-decoration: none !important;
-            color: #333 !important; font-size: 16px; display: block;
+            color: #111 !important; 
+            font-size: 20px; 
+            font-weight: 700;
+            font-family: 'Outfit', sans-serif;
+            display: block;
         }
         
-        .mobile-sub-item { background-color: #F8F9FA; padding-left: 40px !important; color: #555 !important; font-size: 15px !important; }
+        .mobile-sub-item { 
+            color: #666 !important; 
+            font-size: 16px !important; 
+            font-weight: 500 !important;
+            padding-left: 32px !important;
+            margin-top: -10px;
+        }
 
         /* RWD */
         @media (max-width: 768px) {
             .desktop-nav { display: none; }
             .mobile-menu-btn { display: flex; } 
-            .mobile-nav-overlay.open { display: flex; }
         }
 
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
 
     <header class="site-header">
-        <!-- 左側 Logo：透明底、藍框、藍字 -->
+        <!-- 左側 Logo：App 風格大標題 -->
         <a href="#" class="header-logo">LearnKits</a>
 
         <!-- 右側導航 (電腦/平板) -->
         <nav class="desktop-nav">
             <div class="dropdown">
                 <span class="nav-item">
-                    英文資源 
-                    <span class="material-icons" style="font-size: 20px; margin-left: 4px;">arrow_drop_down</span>
+                    Resources 
+                    <span class="material-icons" style="font-size: 20px; margin-left: 4px;">expand_more</span>
                 </span>
                 <div class="dropdown-content">
-                    <a href="https://learn-kits.github.io">7000單字圖卡</a>
+                    <a href="https://learn-kits.github.io">7000 Words Card</a>
                 </div>
             </div>
-            <a href="https://learn-kits.github.io/about" class="nav-item">關於作者</a>
+            <a href="https://learn-kits.github.io/about" class="nav-item">About</a>
         </nav>
 
-        <!-- 右側漢堡選單 (手機)：透明底、藍框、藍字 -->
+        <!-- 右側 Menu 按鈕：使用 grid_view (四格方塊) -->
         <button class="mobile-menu-btn" onclick="toggleMobileMenu()">
-            <span class="material-icons">menu</span>
+            <span class="material-icons">grid_view</span>
         </button>
 
         <!-- 手機版展開選單 -->
         <div class="mobile-nav-overlay" id="mobileNav">
-            <div style="color: #0056D2; font-weight: bold;">英文資源</div>
-            <a href="https://learn-kits.github.io" class="mobile-sub-item">7000單字圖卡</a>
-            <a href="https://learn-kits.github.io/about">關於作者</a>
+            <div style="color: #0056D2; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; padding-bottom: 10px;">Menu</div>
+            <a href="https://learn-kits.github.io">Resources</a>
+            <a href="https://learn-kits.github.io" class="mobile-sub-item">7000 Words Card</a>
+            <a href="https://learn-kits.github.io/about">About Author</a>
         </div>
     </header>
 
@@ -196,29 +206,22 @@
         function toggleMobileMenu() {
             const menu = document.getElementById('mobileNav');
             const btnIcon = document.querySelector('.mobile-menu-btn .material-icons');
+            const header = document.querySelector('.site-header');
             
             if (menu.classList.contains('open')) {
                 menu.classList.remove('open');
-                btnIcon.innerText = 'menu';
+                // 恢復為四格圖示
+                btnIcon.innerText = 'grid_view';
+                // 恢復 Header 背景模糊
+                header.style.background = 'transparent';
             } else {
                 menu.classList.add('open');
+                // 變為關閉圖示
                 btnIcon.innerText = 'close';
+                // 展開時讓 header 變白底以免透明穿透
+                header.style.background = '#fff';
             }
         }
-        
-        document.addEventListener('click', function(event) {
-            const menu = document.getElementById('mobileNav');
-            const btn = document.querySelector('.mobile-menu-btn');
-            
-            if (!menu || !btn) return;
-
-            const isClickInside = menu.contains(event.target) || btn.contains(event.target);
-            
-            if (!isClickInside && menu.classList.contains('open')) {
-                menu.classList.remove('open');
-                document.querySelector('.mobile-menu-btn .material-icons').innerText = 'menu';
-            }
-        });
     </script>
 
 </body>
