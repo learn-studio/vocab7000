@@ -65,13 +65,20 @@
     .dropdown-content a:hover { background-color: #F5F7FA; color: #0056D2 !important; }
 
     /* Mobile Menu Btn */
-    .mobile-menu-btn {
-        display: none; cursor: pointer;
-        width: 44px; height: 44px; padding: 0;
+        .mobile-menu-btn {
+        display: none; 
+        cursor: pointer;
+        width: 44px; height: 44px; 
+        padding: 0;
         align-items: center; justify-content: flex-end;
         background-color: transparent; border: none;
-        color: #0056D2; outline: none; transition: transform 0.2s, color 0.2s;
+        color: #0056D2; 
+        outline: none; 
+        transition: transform 0.2s, color 0.2s;
+        
+        /* ★ 確保層級夠高且可點擊 ★ */
         z-index: 10005;
+        pointer-events: auto !important; 
     }
     .mobile-menu-btn:active { transform: scale(0.9); }
     .mobile-menu-btn .material-icons { font-size: 32px; }
@@ -153,23 +160,3 @@
     <a href="https://learn-kits.github.io/about" class="drawer-item">About LearnKits</a>
 </div>
 
-<script>
-    function toggleMobileMenu() {
-        const menu = document.getElementById('mobileNav');
-        const backdrop = document.getElementById('menuBackdrop');
-        const btn = document.querySelector('.mobile-menu-btn');
-        const btnIcon = btn.querySelector('.material-icons');
-        
-        if (menu.classList.contains('open')) {
-            menu.classList.remove('open');
-            backdrop.classList.remove('open');
-            btnIcon.innerText = 'grid_view';
-            btn.classList.remove('white');
-        } else {
-            menu.classList.add('open');
-            backdrop.classList.add('open');
-            btnIcon.innerText = 'close';
-            btn.classList.add('white');
-        }
-    }
-</script>
