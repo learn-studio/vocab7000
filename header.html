@@ -4,9 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Site Header</title>
-    <!-- 引入 Google Material Icons -->
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-    <!-- 引入英文字體 Outfit -->
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;700;800&display=swap" rel="stylesheet">
     
     <style>
@@ -35,26 +33,30 @@
             padding-top: env(safe-area-inset-top);
             height: calc(80px + env(safe-area-inset-top));
             transition: background 0.3s;
+
+            /* ★ 修正 1：確保 Header 本身可以接收點擊事件 ★ */
+            pointer-events: auto !important;
         }
 
         .site-header a { text-decoration: none !important; }
 
-        /* ★ 修改 1：Logo 改為圖片 ★ */
+        /* Logo 圖片 */
         .header-logo {
             display: flex;
             align-items: center;
             text-decoration: none;
             height: 100%; 
+            cursor: pointer; /* 確保滑鼠變手型 */
         }
 
         .header-logo img {
-            height: 40px; /* 設定高度，讓寬度自適應 */
+            height: 40px; 
             width: auto;
             object-fit: contain;
             display: block;
         }
 
-        /* 電腦版導航選單 */
+        /* --- 電腦版導航選單 (優化) --- */
         .desktop-nav { display: flex; align-items: center; gap: 40px; }
 
         .nav-item {
@@ -66,30 +68,54 @@
             transition: color 0.2s;
             display: flex; align-items: center;
             font-family: 'Outfit', sans-serif;
+            height: 100%; /* 增加感應區高度 */
         }
 
         .nav-item:hover { color: #0056D2 !important; }
 
-        /* 下拉選單 */
+        /* 下拉選單容器 */
         .dropdown { position: relative; height: 100%; display: flex; align-items: center; }
         
+        /* ★ 修正 3：下拉選單位置與樣式優化 ★ */
         .dropdown-content {
-            display: none; position: absolute; top: 80%; right: 0;
-            background-color: #fff; min-width: 200px;
+            display: none; 
+            position: absolute; 
+            /* 改為 100% 確保在父元素正下方 */
+            top: 100%; 
+            right: 0; /* 靠右對齊父元素 */
+            
+            /* 增加一點距離，不要壓到上面的字 */
+            margin-top: 10px; 
+            
+            background-color: #fff; 
+            min-width: 220px;
             border: none;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
-            border-radius: 12px;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15); /* 陰影加深一點 */
+            border-radius: 16px;
             padding: 8px;
-            overflow: hidden; z-index: 1002;
+            overflow: visible; /* 允許偽元素突出 */
+            z-index: 1002;
+        }
+
+        /* 增加一個透明的橋樑，防止滑鼠移到縫隙時選單消失 */
+        .dropdown-content::before {
+            content: '';
+            position: absolute;
+            top: -20px; /* 向上延伸填補縫隙 */
+            left: 0;
+            width: 100%;
+            height: 20px;
+            background: transparent;
         }
 
         .dropdown:hover .dropdown-content { display: block; animation: fadeIn 0.2s ease-in-out; }
 
         .dropdown-content a {
-            color: #333 !important; padding: 12px 16px; display: block; font-size: 15px;
-            transition: background 0.1s; text-align: left; border-radius: 8px;
+            color: #333 !important; padding: 14px 20px; display: block; font-size: 15px;
+            transition: background 0.1s; text-align: left; border-radius: 12px;
+            font-weight: 500;
         }
-        .dropdown-content a:hover { background-color: #F5F7FA; color: #0056D2 !important; }
+        .dropdown-content a:hover { background-color: #F0F5FF; color: #0056D2 !important; }
 
         /* 手機版 Menu 按鈕 */
         .mobile-menu-btn {
@@ -99,14 +125,17 @@
             align-items: center; justify-content: flex-end;
             background-color: transparent; border: none;
             color: #0056D2; 
-            outline: none; transition: transform 0.2s;
-            z-index: 2002; /* 確保比側邊欄高，這樣才能點擊關閉 */
+            outline: none; transition: transform 0.2s, color 0.2s;
+            z-index: 2002; 
         }
         
         .mobile-menu-btn:active { transform: scale(0.9); }
         .mobile-menu-btn .material-icons { font-size: 28px; }
+        
+        /* 當選單打開時，按鈕變成白色 (因為背景變藍了) */
+        .mobile-menu-btn.white-mode { color: #FFFFFF !important; }
 
-        /* ★ 修改 2：側邊抽屜選單 (Right Drawer) ★ */
+        /* --- 側邊抽屜選單 (改藍色風格) --- */
         
         /* 背景遮罩 */
         .menu-backdrop {
@@ -115,7 +144,7 @@
             z-index: 1999;
             opacity: 0; pointer-events: none;
             transition: opacity 0.3s ease;
-            backdrop-filter: blur(2px);
+            backdrop-filter: blur(4px);
         }
         .menu-backdrop.open { opacity: 1; pointer-events: auto; }
 
@@ -124,56 +153,61 @@
             position: fixed; 
             top: 0; 
             right: 0; 
-            width: 75%; /* 佔據螢幕寬度 75% */
+            width: 75%; 
             max-width: 320px;
             height: 100vh;
-            background: #fff;
+            
+            /* ★ 修正 2：改為藍色底 ★ */
+            background: #0056D2;
+            
             z-index: 2000;
-            
-            /* 預設在右側螢幕外 */
             transform: translateX(100%);
-            transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1); /* iOS 風格滑動 */
+            transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
             
-            padding-top: 100px; /* 避開右上角的關閉按鈕 */
-            box-shadow: -5px 0 20px rgba(0,0,0,0.05);
+            padding-top: 100px; 
+            box-shadow: -10px 0 30px rgba(0,86,210,0.3);
             display: flex; flex-direction: column;
         }
         
         .mobile-nav-drawer.open { transform: translateX(0); }
         
-        /* 選單項目樣式 */
+        /* 選單項目樣式 - 改為淺色文字 */
         .drawer-group-title {
             padding: 24px 32px 12px 32px;
-            color: #888;
+            color: rgba(255, 255, 255, 0.6); /* 半透明白 */
             font-size: 13px;
             font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 1.5px;
             font-family: 'Outfit', sans-serif;
         }
 
         .drawer-item {
             padding: 16px 32px;
             text-decoration: none !important;
-            color: #333 !important; 
-            font-size: 18px; 
-            font-weight: 600;
+            color: #FFFFFF !important; /* 白字 */
+            font-size: 20px; 
+            font-weight: 700;
             display: flex; align-items: center;
-            border-left: 4px solid transparent; /* 預留選中線 */
-            transition: background 0.1s;
+            border-left: 4px solid transparent; 
+            transition: background 0.2s;
+            font-family: 'Outfit', sans-serif;
         }
         
-        .drawer-item:active { background: #f5f5f5; }
+        .drawer-item:active { background: rgba(255,255,255,0.1); }
         
-        /* 子項目縮排 */
+        /* 子項目 */
         .drawer-item.sub {
             padding-left: 32px;
             font-weight: 500;
-            color: #0056D2 !important; /* 藍色文字 */
+            color: rgba(255, 255, 255, 0.9) !important;
         }
         
+        /* 分隔線 */
         .drawer-divider {
-            height: 1px; background: #f0f0f0; margin: 10px 20px;
+            height: 1px; 
+            background: rgba(255, 255, 255, 0.15); /* 淺色線 */
+            margin: 16px 32px;
         }
 
         /* RWD */
@@ -182,7 +216,10 @@
             .mobile-menu-btn { display: flex; } 
         }
 
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { 
+            from { opacity: 0; transform: translateY(10px); } 
+            to { opacity: 1; transform: translateY(0); } 
+        }
     </style>
 </head>
 <body>
@@ -217,7 +254,7 @@
     <!-- 遮罩層 -->
     <div class="menu-backdrop" id="menuBackdrop" onclick="toggleMobileMenu()"></div>
 
-    <!-- 手機版側邊滑入選單 -->
+    <!-- 手機版側邊滑入選單 (藍色) -->
     <div class="mobile-nav-drawer" id="mobileNav">
         
         <!-- 群組：英文小工具 -->
@@ -235,25 +272,27 @@
         function toggleMobileMenu() {
             const menu = document.getElementById('mobileNav');
             const backdrop = document.getElementById('menuBackdrop');
-            const btnIcon = document.querySelector('.mobile-menu-btn .material-icons');
-            const header = document.getElementById('siteHeader');
+            const btn = document.querySelector('.mobile-menu-btn');
+            const btnIcon = btn.querySelector('.material-icons');
             
             if (menu.classList.contains('open')) {
                 // 關閉選單
                 menu.classList.remove('open');
                 backdrop.classList.remove('open');
+                
+                // 恢復藍色按鈕
                 btnIcon.innerText = 'grid_view';
+                btn.classList.remove('white-mode');
             } else {
                 // 開啟選單
                 menu.classList.add('open');
                 backdrop.classList.add('open');
+                
+                // 變成白色按鈕 (因為背景是藍色)
                 btnIcon.innerText = 'close';
+                btn.classList.add('white-mode');
             }
         }
-    </script>
-
-</body>
-</html>
     </script>
 
 </body>
