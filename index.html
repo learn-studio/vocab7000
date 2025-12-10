@@ -47,13 +47,15 @@
             display: flex; flex-direction: column;
         }
 
-        /* --- Header --- */
+        /* --- Header 容器 (關鍵修正) --- */
         #header-container {
             position: absolute; top: 0; left: 0; width: 100%; z-index: 100;
             height: var(--header-height);
-            pointer-events: none;
+            /* 讓容器本身不擋點擊，讓內部的 header.html 決定哪些元素可點 */
+            pointer-events: none; 
         }
-        #header-container * { pointer-events: auto; }
+        /* ★★★ 刪除了 #header-container * { pointer-events: auto; } 這行 ★★★ */
+        /* 這讓 header.html 裡的 pointer-events: none 設定能正常生效 */
 
         /* --- App Layout --- */
         #app {
@@ -402,7 +404,7 @@
 <script>
     const SHEET_ID = '1Piz5rwAWy9f0B0WFjz6WlBTfkp89r_7q4mo41teEkoE';
     const STATUS_KEY = 'learnkits_status_db'; 
-    const APP_STATE_KEY = 'learnkits_app_state_v1'; // 新增：狀態儲存 Key
+    const APP_STATE_KEY = 'learnkits_app_state_v1'; 
 
     const LEVEL_CONFIG = [
         { level: 'Level 1', gid: '1467595538' },
@@ -415,37 +417,27 @@
 
     let fullVocabData = [], displayData = [];
     
-    // 預設狀態
-    let filterState = {
-        level: 'All',
-        letter: 'A',
-        status: 'all' 
-    };
-    
+    let filterState = { level: 'All', letter: 'A', status: 'all' };
     let sortMode = 'sequential'; 
     let currentIndex = 0;
     let statusDB = {}; 
     const phoneticCache = {}; 
-    let savedIndex = 0; // 用來暫存讀取到的 index
+    let savedIndex = 0; 
     
     const gridWrapper = document.getElementById('grid-wrapper');
 
     // Init Sequence
-    loadStatusDB(); // 1. Load Word Mastery
-    loadAppState(); // 2. Load Filters & Index
-    initUI();       // 3. Update UI buttons based on loaded state
-    fetchAllLevels(); // 4. Fetch Data -> Apply Filters -> Restore Index
+    loadStatusDB(); 
+    loadAppState(); 
+    initUI();       
+    fetchAllLevels(); 
     
-    window.addEventListener('resize', () => {
-        renderGrid();
-    });
+    window.addEventListener('resize', () => { renderGrid(); });
 
     function getPageSize() {
         if (window.innerWidth >= 600) return 2; 
         return 1; 
     }
-
-    // --- Persistence Logic ---
 
     function loadStatusDB() {
         try {
@@ -458,17 +450,11 @@
         localStorage.setItem(STATUS_KEY, JSON.stringify(statusDB));
     }
 
-    // 新增：儲存 App 狀態 (Filter, Sort, Index)
     function saveAppState() {
-        const state = {
-            filter: filterState,
-            sort: sortMode,
-            index: currentIndex
-        };
+        const state = { filter: filterState, sort: sortMode, index: currentIndex };
         localStorage.setItem(APP_STATE_KEY, JSON.stringify(state));
     }
 
-    // 新增：讀取 App 狀態
     function loadAppState() {
         try {
             const raw = localStorage.getItem(APP_STATE_KEY);
@@ -478,12 +464,8 @@
                 if (state.sort) sortMode = state.sort;
                 if (typeof state.index === 'number') savedIndex = state.index;
             }
-        } catch(e) { 
-            console.log('No saved state found, using defaults.');
-        }
+        } catch(e) {}
     }
-
-    // --- End Persistence ---
 
     async function fetchAllLevels() {
         const promises = LEVEL_CONFIG.map(config => {
@@ -502,18 +484,13 @@
 
         const allData = await Promise.all(promises);
         fullVocabData = mergeAndDeduplicate(allData.flat());
-        
-        // Data loaded. Apply filters.
-        // false: Don't reset index to 0 yet, we want to restore savedIndex.
         applyFilters(false);
         
-        // Restore Saved Index (Check bounds)
         if (savedIndex > 0 && savedIndex < displayData.length) {
             currentIndex = savedIndex;
         } else {
             currentIndex = 0;
         }
-        
         renderGrid();
     }
 
@@ -563,7 +540,7 @@
             btn.onclick = () => {
                 filterState.level = l; 
                 updateFilterUI();
-                applyFilters(true); // User interaction -> Reset index
+                applyFilters(true); 
             };
             lvlContainer.appendChild(btn);
         });
@@ -576,7 +553,7 @@
             btn.onclick = () => {
                 filterState.letter = l; 
                 updateFilterUI();
-                applyFilters(true); // User interaction -> Reset index
+                applyFilters(true); 
             };
             azContainer.appendChild(btn);
         });
@@ -666,13 +643,10 @@
 
         displayData = filtered;
         
-        // If user changed filter, reset to 0. 
-        // If just reloading/refreshing logic, keep current (handled outside or passed false).
         if (resetIndex) {
             currentIndex = 0;
         }
         
-        // Save state whenever filters are applied
         saveAppState();
         renderGrid();
     }
@@ -691,8 +665,6 @@
         }
 
         currentIndex = next;
-        
-        // Save state whenever page changes
         saveAppState();
         renderGrid();
     }
@@ -731,14 +703,12 @@
         wrapper.innerHTML = `
             <div class="card">
                 <div class="card-face front-face">
-                    
                     <div class="feedback-overlay" id="overlay-${kkId}">
                         <div class="feedback-content">
                             <span class="material-icons feedback-icon">sentiment_very_satisfied</span>
                             <div class="feedback-text">Mastered</div>
                         </div>
                     </div>
-
                     <div class="visual-wrapper">
                         <img src="${item.img}" class="word-image" loading="lazy">
                         <div class="action-cluster-float" onclick="event.stopPropagation()">
@@ -751,7 +721,6 @@
                             </a>
                         </div>
                     </div>
-                    
                     <div class="bottom-content">
                         <div class="level-pill">${item.level.toUpperCase()}</div>
                         <div class="main-word">${item.word}</div>
@@ -772,7 +741,6 @@
                         </div>
                     </div>
                 </div>
-
                 <div class="card-face back-face">
                     <div class="trans-text">${item.trans}</div>
                     <div class="hint-text">Tap to return</div>
@@ -945,3 +913,4 @@
 </script>
 </body>
 </html>
+
