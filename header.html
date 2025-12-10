@@ -11,24 +11,20 @@
     
     <style>
         /* --- 基礎設定 --- */
-        body { margin: 0; padding: 0; width: 100%; font-family: 'Segoe UI', sans-serif; background-color: #F0F2F5; }
+        body { margin: 0; padding: 0; width: 100%; font-family: 'Segoe UI', sans-serif; background-color: #F0F2F5; overflow-x: hidden; }
 
         /* --- Header CSS --- */
         .site-header {
             position: sticky; 
             top: 0; left: 0;
             width: 100%;
+            height: 80px; 
+            padding: 0 24px;
             
-            /* ★ 修改 1：極簡 App 風格設定 ★ */
-            height: 80px; /* 高度加高，增加透氣感 */
-            padding: 0 24px; /* 左右間距加大 */
-            
-            background-color: transparent; /* 完全透明背景 */
-            /* 如果希望滑動時文字不被內容干擾，可保留下方這行毛玻璃，若要完全透明可移除 */
+            background-color: transparent; 
             backdrop-filter: blur(8px); 
             -webkit-backdrop-filter: blur(8px);
             
-            /* 移除底線與陰影 */
             border-bottom: none; 
             box-shadow: none;
             
@@ -36,29 +32,26 @@
             box-sizing: border-box;
             z-index: 1001; flex-shrink: 0; 
             
-            /* 避開手機瀏海 */
             padding-top: env(safe-area-inset-top);
             height: calc(80px + env(safe-area-inset-top));
+            transition: background 0.3s;
         }
 
         .site-header a { text-decoration: none !important; }
 
-        /* ★ 修改 2：Logo 樣式 (純文字、無框) ★ */
+        /* ★ 修改 1：Logo 改為圖片 ★ */
         .header-logo {
             display: flex;
             align-items: center;
             text-decoration: none;
-            
-            /* 風格：無框、純藍字 */
-            background-color: transparent;
-            color: #0056D2 !important;
-            border: none;
-            
-            /* 字體設定：加大、加粗，更像 App 標題 */
-            font-family: 'Outfit', sans-serif;
-            font-weight: 800;
-            font-size: 24px; 
-            letter-spacing: -0.5px; /* 字距微縮更緊湊 */
+            height: 100%; 
+        }
+
+        .header-logo img {
+            height: 40px; /* 設定高度，讓寬度自適應 */
+            width: auto;
+            object-fit: contain;
+            display: block;
         }
 
         /* 電腦版導航選單 */
@@ -83,7 +76,6 @@
         .dropdown-content {
             display: none; position: absolute; top: 80%; right: 0;
             background-color: #fff; min-width: 200px;
-            /* 下拉選單改為輕微圓角與陰影，無邊框 */
             border: none;
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
             border-radius: 12px;
@@ -99,64 +91,89 @@
         }
         .dropdown-content a:hover { background-color: #F5F7FA; color: #0056D2 !important; }
 
-        /* ★ 修改 3：Menu 按鈕 (四格方塊 Icon、無框) ★ */
+        /* 手機版 Menu 按鈕 */
         .mobile-menu-btn {
             display: none; 
             cursor: pointer;
-            
-            /* 尺寸 */
-            width: 40px;
-            height: 40px;
-            padding: 0;
-            
-            /* Flex 置中 */
-            align-items: center;
-            justify-content: flex-end; /* 靠右對齊 */
-            
-            /* 風格設定：全透明、無框 */
-            background-color: transparent;
-            border: none;
-            color: #0056D2; /* Icon 顏色 */
-            
-            outline: none;
-            transition: transform 0.2s;
+            width: 40px; height: 40px; padding: 0;
+            align-items: center; justify-content: flex-end;
+            background-color: transparent; border: none;
+            color: #0056D2; 
+            outline: none; transition: transform 0.2s;
+            z-index: 2002; /* 確保比側邊欄高，這樣才能點擊關閉 */
         }
         
         .mobile-menu-btn:active { transform: scale(0.9); }
+        .mobile-menu-btn .material-icons { font-size: 28px; }
+
+        /* ★ 修改 2：側邊抽屜選單 (Right Drawer) ★ */
         
-        .mobile-menu-btn .material-icons {
-            font-size: 28px; /* Icon 稍微加大 */
+        /* 背景遮罩 */
+        .menu-backdrop {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            z-index: 1999;
+            opacity: 0; pointer-events: none;
+            transition: opacity 0.3s ease;
+            backdrop-filter: blur(2px);
+        }
+        .menu-backdrop.open { opacity: 1; pointer-events: auto; }
+
+        /* 選單本體 */
+        .mobile-nav-drawer {
+            position: fixed; 
+            top: 0; 
+            right: 0; 
+            width: 75%; /* 佔據螢幕寬度 75% */
+            max-width: 320px;
+            height: 100vh;
+            background: #fff;
+            z-index: 2000;
+            
+            /* 預設在右側螢幕外 */
+            transform: translateX(100%);
+            transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1); /* iOS 風格滑動 */
+            
+            padding-top: 100px; /* 避開右上角的關閉按鈕 */
+            box-shadow: -5px 0 20px rgba(0,0,0,0.05);
+            display: flex; flex-direction: column;
+        }
+        
+        .mobile-nav-drawer.open { transform: translateX(0); }
+        
+        /* 選單項目樣式 */
+        .drawer-group-title {
+            padding: 24px 32px 12px 32px;
+            color: #888;
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-family: 'Outfit', sans-serif;
         }
 
-        /* 手機版導航展開 */
-        .mobile-nav-overlay {
-            display: none; position: fixed; 
-            top: 0; left: 0; width: 100%; height: 100vh;
-            background: rgba(255,255,255,0.98); 
-            flex-direction: column; z-index: 1000;
-            padding-top: 100px; /* 避開 Header */
-            opacity: 0; transition: opacity 0.3s;
-        }
-        
-        .mobile-nav-overlay.open { display: flex; opacity: 1; }
-        
-        .mobile-nav-overlay a, .mobile-nav-overlay div {
-            padding: 20px 32px;
-            border-bottom: none; /* 移除分隔線，更乾淨 */
+        .drawer-item {
+            padding: 16px 32px;
             text-decoration: none !important;
-            color: #111 !important; 
-            font-size: 20px; 
-            font-weight: 700;
-            font-family: 'Outfit', sans-serif;
-            display: block;
+            color: #333 !important; 
+            font-size: 18px; 
+            font-weight: 600;
+            display: flex; align-items: center;
+            border-left: 4px solid transparent; /* 預留選中線 */
+            transition: background 0.1s;
         }
         
-        .mobile-sub-item { 
-            color: #666 !important; 
-            font-size: 16px !important; 
-            font-weight: 500 !important;
-            padding-left: 32px !important;
-            margin-top: -10px;
+        .drawer-item:active { background: #f5f5f5; }
+        
+        /* 子項目縮排 */
+        .drawer-item.sub {
+            padding-left: 32px;
+            font-weight: 500;
+            color: #0056D2 !important; /* 藍色文字 */
+        }
+        
+        .drawer-divider {
+            height: 1px; background: #f0f0f0; margin: 10px 20px;
         }
 
         /* RWD */
@@ -170,11 +187,14 @@
 </head>
 <body>
 
-    <header class="site-header">
-        <!-- 左側 Logo：App 風格大標題 -->
-        <a href="#" class="header-logo">LearnKits</a>
+    <!-- Header -->
+    <header class="site-header" id="siteHeader">
+        <!-- Logo 圖片 -->
+        <a href="#" class="header-logo">
+            <img src="image/learnkits_logo.png" alt="LearnKits">
+        </a>
 
-        <!-- 右側導航 (電腦/平板) -->
+        <!-- 電腦版導航 -->
         <nav class="desktop-nav">
             <div class="dropdown">
                 <span class="nav-item">
@@ -182,46 +202,58 @@
                     <span class="material-icons" style="font-size: 20px; margin-left: 4px;">expand_more</span>
                 </span>
                 <div class="dropdown-content">
-                    <a href="https://learn-kits.github.io">7000 Words Card</a>
+                    <a href="https://learn-kits.github.io">Vocabulary 7000</a>
                 </div>
             </div>
             <a href="https://learn-kits.github.io/about" class="nav-item">About</a>
         </nav>
 
-        <!-- 右側 Menu 按鈕：使用 grid_view (四格方塊) -->
+        <!-- 手機版 Menu 按鈕 -->
         <button class="mobile-menu-btn" onclick="toggleMobileMenu()">
             <span class="material-icons">grid_view</span>
         </button>
-
-        <!-- 手機版展開選單 -->
-        <div class="mobile-nav-overlay" id="mobileNav">
-            <div style="color: #0056D2; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; padding-bottom: 10px;">Menu</div>
-            <a href="https://learn-kits.github.io">Resources</a>
-            <a href="https://learn-kits.github.io" class="mobile-sub-item">7000 Words Card</a>
-            <a href="https://learn-kits.github.io/about">About Author</a>
-        </div>
     </header>
+
+    <!-- 遮罩層 -->
+    <div class="menu-backdrop" id="menuBackdrop" onclick="toggleMobileMenu()"></div>
+
+    <!-- 手機版側邊滑入選單 -->
+    <div class="mobile-nav-drawer" id="mobileNav">
+        
+        <!-- 群組：英文小工具 -->
+        <div class="drawer-group-title">Resources</div>
+        <a href="https://learn-kits.github.io" class="drawer-item sub">Vocabulary 7000</a>
+        
+        <div class="drawer-divider"></div>
+
+        <!-- 一般選項 -->
+        <a href="https://learn-kits.github.io/about" class="drawer-item">About</a>
+        
+    </div>
 
     <script>
         function toggleMobileMenu() {
             const menu = document.getElementById('mobileNav');
+            const backdrop = document.getElementById('menuBackdrop');
             const btnIcon = document.querySelector('.mobile-menu-btn .material-icons');
-            const header = document.querySelector('.site-header');
+            const header = document.getElementById('siteHeader');
             
             if (menu.classList.contains('open')) {
+                // 關閉選單
                 menu.classList.remove('open');
-                // 恢復為四格圖示
+                backdrop.classList.remove('open');
                 btnIcon.innerText = 'grid_view';
-                // 恢復 Header 背景模糊
-                header.style.background = 'transparent';
             } else {
+                // 開啟選單
                 menu.classList.add('open');
-                // 變為關閉圖示
+                backdrop.classList.add('open');
                 btnIcon.innerText = 'close';
-                // 展開時讓 header 變白底以免透明穿透
-                header.style.background = '#fff';
             }
         }
+    </script>
+
+</body>
+</html>
     </script>
 
 </body>
