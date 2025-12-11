@@ -33,9 +33,16 @@
             width: 100vw;
             overflow: hidden;
             position: relative;
-            touch-action: none; 
+            /* 修正：移除 body 的 touch-action: none，否則手機無法點擊連結 */
             user-select: none;
             -webkit-user-select: none;
+        }
+
+        /* --- Header 容器：確保它在最上層 --- */
+        #header-container {
+            position: absolute;
+            top: 0; left: 0; width: 100%;
+            z-index: 9999; /* 提高層級 */
         }
 
         /* --- 1. 背景呼吸光點層 --- */
@@ -76,11 +83,13 @@
             z-index: 1;
             opacity: 0; 
             transition: opacity 1.5s ease;
+            /* 修正：只在這個遊戲畫布上禁止瀏覽器預設觸控行為 */
+            touch-action: none; 
         }
 
-        /* --- 3. 右下角資訊卡片 (電腦版預設) --- */
+        /* --- 3. 右下角資訊卡片 --- */
         .info-card {
-            position: fixed; /* 強制固定 */
+            position: fixed; 
             bottom: 30px; 
             right: 64px;
             width: 380px;
@@ -123,16 +132,11 @@
         .copy-hint { color: #10B981; font-size: 12px; font-weight: 500; opacity: 0; transition: 0.3s; }
         .copy-hint.show { opacity: 1; }
 
-        /* --- ★ RWD 手機版設定 (已修正語法錯誤) ★ --- */
+        /* --- RWD 手機版設定 --- */
         @media (max-width: 768px) {
-            /* 修正處：這裡原本是 ..info-card，現在改回 .info-card */
             .info-card { 
                 position: fixed;
-                
-                /* 使用 calc 確保底部留有足夠空間 */
-                /* 40px 基本距離 + iPhone 底部橫條安全距離 */
                 bottom: calc(40px + env(safe-area-inset-bottom));
-                
                 right: 20px; 
                 left: 20px; 
                 width: auto; 
@@ -166,8 +170,8 @@
 
     <div class="info-card">
         <div class="card-header">
-            <h1 class="name-title">Betty C.</h1>
-            <div class="job-title">Product Designer</div>
+            <h1 class="name-title">Created by Betty C.</h1>
+            <div class="sub-title">Make Study Simple.</div>
         </div>
         <div class="card-content">
             <p>
@@ -193,11 +197,35 @@
             });
         }
 
+        // --- 載入 Header 並修正 Mobile Menu 邏輯 ---
         fetch('header.html')
             .then(r => r.ok ? r.text() : Promise.reject())
             .then(d => {
                 document.getElementById('header-container').innerHTML = d;
-                window.toggleMobileMenu = () => document.getElementById('mobileNav')?.classList.toggle('open');
+                
+                // ★ 修正：完整的 Menu 切換邏輯 (含遮罩與按鈕變色)
+                window.toggleMobileMenu = function() {
+                    const menu = document.getElementById('mobileNav');
+                    const backdrop = document.getElementById('menuBackdrop');
+                    const btn = document.querySelector('.mobile-menu-btn');
+                    const btnIcon = btn ? btn.querySelector('.material-icons') : null;
+
+                    if (!menu || !backdrop) return;
+
+                    if (menu.classList.contains('open')) {
+                        // 關閉
+                        menu.classList.remove('open');
+                        backdrop.classList.remove('open'); // 關閉遮罩
+                        if(btnIcon) btnIcon.innerText = 'grid_view';
+                        if(btn) btn.classList.remove('white');
+                    } else {
+                        // 打開
+                        menu.classList.add('open');
+                        backdrop.classList.add('open'); // 打開遮罩
+                        if(btnIcon) btnIcon.innerText = 'close';
+                        if(btn) btn.classList.add('white');
+                    }
+                };
             })
             .catch(() => console.log('Header load skipped'));
 
