@@ -308,11 +308,21 @@
             padding: 8px 16px; border-radius: 8px; border: 1px solid #eee;
             background: #fff; color: var(--text-dark);
             font-family: var(--font-eng); font-weight: 600; font-size: 14px; cursor: pointer;
+            
+            /* 置中修正 */
+            display: flex; align-items: center; justify-content: center;
         }
         .opt-btn.active { 
             background: var(--primary) !important; 
             color: #fff !important; 
             border-color: var(--primary) !important; 
+        }
+
+        /* 字母 Grid 專用樣式 */
+        #azOptions .opt-btn {
+            padding: 0;      /* 移除 padding，全靠 flex 置中 */
+            height: 40px;    /* 固定高度 */
+            width: 100%;
         }
 
         .status-filter-btn { display: flex; align-items: center; gap: 6px; }
@@ -394,7 +404,8 @@
             <div class="grid-options" id="levelOptions"></div>
             
             <span class="config-title">Letter</span>
-            <div class="grid-options" id="azOptions" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(40px, 1fr)); width:100%;"></div>
+            <!-- JS 設定 Grid 樣式 -->
+            <div class="grid-options" id="azOptions"></div>
             
             <button class="close-config" onclick="toggleConfig()">DONE</button>
         </div>
@@ -582,7 +593,9 @@
         // 設置字母按鈕 (加入 ALL)
         const azContainer = document.getElementById('azOptions');
         azContainer.innerHTML = '';
-        
+        // 修正 Grid 樣式與 Gap
+        azContainer.style.cssText = "display:grid; grid-template-columns: repeat(auto-fill, minmax(44px, 1fr)); width:100%; gap: 8px;"; 
+
         // 1. 新增 ALL 按鈕
         const allAzBtn = document.createElement('button');
         allAzBtn.className = 'opt-btn';
@@ -822,8 +835,8 @@
     function setWordStatus(word, status) {
         // 1. 更新資料庫
         if (statusDB[word] === status) {
-            // 如果點擊相同的，不做取消，保持該狀態（或是你想做 toggle 也可以，這裡假設是確認選取）
-            // delete statusDB[word]; // 如果你想再次點擊取消，請取消註釋這行
+            // 如果點擊相同的，保持該狀態 (如需取消請取消下方註解)
+            // delete statusDB[word]; 
         } else {
             statusDB[word] = status;
         }
@@ -841,7 +854,7 @@
             if(targetBtn) targetBtn.classList.add('active');
         }
 
-        // 4. 觸發全版 Feedback Overlay 動畫 (不管什麼篩選模式都要秀)
+        // 4. 觸發全版 Feedback Overlay 動畫
         const overlay = activeWrapper.querySelector('.feedback-overlay');
         const content = overlay.querySelector('.feedback-content');
         const icon = overlay.querySelector('.feedback-icon');
@@ -865,36 +878,29 @@
         overlay.classList.add('show');
 
         // 5. 判斷是否需要移除卡片 (Reload Grid)
-        // 規則：如果當前篩選器是 'All'，則不隱藏卡片。
-        // 如果當前篩選器是 Specific (例如 Mastered)，且新狀態 (例如 Normal) 不符合，則隱藏。
+        // 規則：如果當前篩選器是 'All'，則保留卡片。
+        // 如果當前篩選器是 Specific (例如 Mastered)，且新狀態 (例如 Normal) 不符合，則移除。
         
         const isFilterAll = (filterState.status === 'all');
         const isFilterNone = (filterState.status === 'none');
         
-        // 檢查新狀態是否符合當前過濾器
-        // 如果是 'none' 模式，只有當 statusDB[word] 不存在才符合
-        // 如果是 'green'/'yellow'/'red' 模式，必須相等才符合
         let matchesFilter = false;
         if (isFilterAll) {
-            matchesFilter = true; // All 模式下永遠算符合，不移除
+            matchesFilter = true; // All 模式下永遠保留
         } else if (isFilterNone) {
             matchesFilter = !statusDB[word];
         } else {
             matchesFilter = (statusDB[word] === filterState.status);
         }
 
-        // 如果不符合過濾條件，則需要移除並切換
         if (!matchesFilter) {
+            // 不符合過濾條件 -> 延遲後移除並切換下一張
             setTimeout(() => {
-                // 隱藏遮罩 (雖然卡片馬上要被移除了，但為了平滑過渡)
                 overlay.classList.remove('show');
-                
-                // 重新套用過濾器 -> 這會導致該卡片從 displayData 中移除 -> 重新渲染 -> 下一張卡片遞補上來
-                // 傳入 false 代表不重置 index，這樣可以讓下一張補位到當前位置
-                applyFilters(false);
-            }, 600); // 延遲 600ms 讓使用者看完動畫
+                applyFilters(false); // false = 不重置 index，下一張會自動補上
+            }, 600); 
         } else {
-            // 如果符合過濾條件 (例如 All 模式，或者從 Green 改成 Green)，只關閉遮罩
+            // 符合過濾條件 (或 All 模式) -> 延遲後僅關閉遮罩，卡片保留
             setTimeout(() => {
                 overlay.classList.remove('show');
             }, 600);
@@ -997,4 +1003,3 @@
 </script>
 </body>
 </html>
-
