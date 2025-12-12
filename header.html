@@ -1,3 +1,9 @@
+<head>
+    <!-- ★ 修改：引入 Material Icons Round (圓角風格圖示) ★ -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons|Material+Icons+Round" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;700;800&display=swap" rel="stylesheet">
+</head>
+
 <style>
     /* --- Header CSS --- */
     .site-header {
@@ -59,7 +65,6 @@
     .dropdown-content a:hover { background-color: #F5F7FA; color: #0056D2 !important; }
 
     /* Mobile Menu Btn */
-    /* Mobile Menu Btn */
     .mobile-menu-btn {
         display: none; 
         cursor: pointer;
@@ -70,21 +75,23 @@
         color: #0056D2; 
         outline: none; 
         
-        /* ★ 新增：圓角設定 ★ */
-        border-radius: 12px; /* 12px 是個不錯的數值，配合整體風格 */
+        /* 按鈕外框圓角 (保留) */
+        border-radius: 12px;
         
-        transition: transform 0.2s, color 0.2s, background-color 0.2s; /* 增加背景色過渡 */
+        transition: transform 0.2s, color 0.2s, background-color 0.2s;
         z-index: 10005;
         pointer-events: auto !important; 
     }
+    .mobile-menu-btn:active { transform: scale(0.9); background-color: rgba(0, 86, 210, 0.05); }
     
-    /* 點擊時增加一點背景反饋，讓圓角更明顯 */
-    .mobile-menu-btn:active { 
-        transform: scale(0.9); 
-        background-color: rgba(0, 86, 210, 0.05); /* 淡淡的藍色背景 */
+    /* ★ 修改：針對圓角 Icon 設定大小 ★ */
+    .mobile-menu-btn .material-icons, 
+    .mobile-menu-btn .material-icons-round { 
+        font-size: 32px; 
     }
-    .mobile-menu-btn .material-icons { font-size: 32px; }
+    
     .mobile-menu-btn.white { color: #fff !important; }
+    .mobile-menu-btn.white:active { background-color: rgba(255, 255, 255, 0.1); }
 
     /* Menu Backdrop */
     .menu-backdrop {
@@ -134,7 +141,6 @@
 </style>
 
 <header class="site-header" id="siteHeader">
-    <!-- 1. Logo: 加上判斷式 -->
     <a href="https://learn-kits.github.io/vocab7000" onclick="if(window.resetToHome) { resetToHome(event); return false; }" class="header-logo">
         <img src="image/learnkits_logo.png" alt="LearnKits">
     </a>
@@ -145,7 +151,6 @@
                 Resources <span class="material-icons" style="font-size: 20px; margin-left: 4px;">expand_more</span>
             </span>
             <div class="dropdown-content">
-                <!-- 2. 下拉選單: 加上判斷式 -->
                 <a href="https://learn-kits.github.io/vocab7000" onclick="if(window.resetToHome) { resetToHome(event); return false; }">Vocabulary 7000</a>
             </div>
         </div>
@@ -153,7 +158,8 @@
     </nav>
     
     <button class="mobile-menu-btn" onclick="toggleMobileMenu()">
-        <span class="material-icons">grid_view</span>
+        <!-- ★ 修改：使用 material-icons-round 來顯示圓角圖示 ★ -->
+        <span class="material-icons-round">grid_view</span>
     </button>
 </header>
 
@@ -161,10 +167,32 @@
 
 <div class="mobile-nav-drawer" id="mobileNav">
     <div class="drawer-group-title">Resources</div>
-    <!-- 3. 手機版選單: 加上判斷式 -->
     <a href="https://learn-kits.github.io/vocab7000" onclick="if(window.resetToHome) { resetToHome(event); return false; }" class="drawer-item sub">Vocabulary 7000</a>
     
     <div class="drawer-divider"></div>
     <a href="https://learn-kits.github.io/about" class="drawer-item">About LearnKits</a>
 </div>
+
+<script>
+    function toggleMobileMenu() {
+        const menu = document.getElementById('mobileNav');
+        const backdrop = document.getElementById('menuBackdrop');
+        const btn = document.querySelector('.mobile-menu-btn');
+        
+        // ★ 修改：抓取 span 元素，不論 class 是 material-icons 還是 material-icons-round ★
+        const btnIcon = btn.querySelector('span');
+        
+        if (menu.classList.contains('open')) {
+            menu.classList.remove('open');
+            backdrop.classList.remove('open');
+            btnIcon.innerText = 'grid_view';
+            btn.classList.remove('white');
+        } else {
+            menu.classList.add('open');
+            backdrop.classList.add('open');
+            btnIcon.innerText = 'close';
+            btn.classList.add('white');
+        }
+    }
+</script>
 
