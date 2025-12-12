@@ -196,31 +196,37 @@
             });
         }
 
-        // --- 載入 Header 並修正 Mobile Menu 邏輯 ---
+// --- 載入 Header 並修正 Mobile Menu 邏輯 ---
         fetch('header.html')
             .then(r => r.ok ? r.text() : Promise.reject())
             .then(d => {
                 document.getElementById('header-container').innerHTML = d;
                 
-                // ★ 修正：完整的 Menu 切換邏輯 (含遮罩與按鈕變色)
+                // ★ 修正：完整的 Menu 切換邏輯
                 window.toggleMobileMenu = function() {
                     const menu = document.getElementById('mobileNav');
                     const backdrop = document.getElementById('menuBackdrop');
+                    // 這裡記得要重新抓取元素
                     const btn = document.querySelector('.mobile-menu-btn');
-                    const btnIcon = btn ? btn.querySelector('.material-icons') : null;
+                    
+                    // ★ 修改 1：這裡改成抓 'span'，才不會因為換了 icon class 就抓不到
+                    const btnIcon = btn ? btn.querySelector('span') : null;
 
                     if (!menu || !backdrop) return;
 
                     if (menu.classList.contains('open')) {
-                        // 關閉
+                        // 關閉選單
                         menu.classList.remove('open');
-                        backdrop.classList.remove('open'); // 關閉遮罩
-                        if(btnIcon) btnIcon.innerText = 'grid_view';
+                        backdrop.classList.remove('open'); 
+                        
+                        // ★ 修改 2：建議改回 'menu'，跟 Header 預設一致 (原本是 grid_view)
+                        if(btnIcon) btnIcon.innerText = 'menu'; 
                         if(btn) btn.classList.remove('white');
                     } else {
-                        // 打開
+                        // 打開選單
                         menu.classList.add('open');
-                        backdrop.classList.add('open'); // 打開遮罩
+                        backdrop.classList.add('open'); 
+                        
                         if(btnIcon) btnIcon.innerText = 'close';
                         if(btn) btn.classList.add('white');
                     }
