@@ -59,6 +59,7 @@
     .dropdown-content a:hover { background-color: #F5F7FA; color: #0056D2 !important; }
 
     /* Mobile Menu Btn */
+    /* Mobile Menu Btn */
     .mobile-menu-btn {
         display: none; 
         cursor: pointer;
@@ -68,11 +69,20 @@
         background-color: transparent; border: none;
         color: #0056D2; 
         outline: none; 
-        transition: transform 0.2s, color 0.2s;
+        
+        /* ★ 新增：圓角設定 ★ */
+        border-radius: 12px; /* 12px 是個不錯的數值，配合整體風格 */
+        
+        transition: transform 0.2s, color 0.2s, background-color 0.2s; /* 增加背景色過渡 */
         z-index: 10005;
         pointer-events: auto !important; 
     }
-    .mobile-menu-btn:active { transform: scale(0.9); }
+    
+    /* 點擊時增加一點背景反饋，讓圓角更明顯 */
+    .mobile-menu-btn:active { 
+        transform: scale(0.9); 
+        background-color: rgba(0, 86, 210, 0.05); /* 淡淡的藍色背景 */
+    }
     .mobile-menu-btn .material-icons { font-size: 32px; }
     .mobile-menu-btn.white { color: #fff !important; }
 
